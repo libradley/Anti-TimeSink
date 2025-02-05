@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import './App.css'; // Import external CSS file
 
 const BlockWebpage = () => {
   const [url, setUrl] = useState('');
@@ -14,6 +15,9 @@ const BlockWebpage = () => {
     Sun: false,
   });
 
+  const [startPeriod, setStartPeriod] = useState('AM'); 
+  const [endPeriod, setEndPeriod] = useState('AM'); 
+
   const handleCheckboxChange = (day) => {
     setSelectedDays((prevState) => ({
       ...prevState,
@@ -21,18 +25,49 @@ const BlockWebpage = () => {
     }));
   };
 
+  const convertTo24Hour = (time, period) => {
+    const [hours, minutes] = time.split(':').map(Number);
+    let convertedHours = hours;
+
+    if (period === 'AM' && hours === 12) convertedHours = 0;
+    if (period === 'PM' && hours !== 12) convertedHours += 12;
+
+    return `${String(convertedHours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+  };
+
+  const roundTo30Minutes = (time) => {
+    const [hours, minutes] = time.split(':').map(Number);
+    const totalMinutes = hours * 60 + minutes;
+    const roundedMinutes = Math.round(totalMinutes / 30) * 30;
+    const roundedHours = Math.floor(roundedMinutes / 60);
+    const roundedMinutesRemaining = roundedMinutes % 60;
+    return `${String(roundedHours).padStart(2, '0')}:${String(roundedMinutesRemaining).padStart(2, '0')}`;
+  };
+
   const handleSubmit = () => {
+    const timePattern = /^([01]?[0-9]|1[0-2]):([0-5]?[0-9])$/;
+
+    if (!timePattern.test(startTime) || !timePattern.test(endTime)) {
+      alert('Please enter time in HH:MM format');
+      return;
+    }
+
+    const correctedStartTime = convertTo24Hour(startTime, startPeriod);
+    const correctedEndTime = convertTo24Hour(endTime, endPeriod);
+
+    const roundedStartTime = roundTo30Minutes(correctedStartTime);
+    const roundedEndTime = roundTo30Minutes(correctedEndTime);
+
     console.log('Block URL:', url);
-    console.log('Start Time:', startTime);
-    console.log('End Time:', endTime);
+    console.log('Start Time:', roundedStartTime);
+    console.log('End Time:', roundedEndTime);
     console.log('Selected Days:', selectedDays);
-    // Implement further logic for blocking URLs here
   };
 
   return (
-    <div style={{ padding: '20px', maxWidth: '500px', margin: 'auto' }}>
+    <div className="container">
       <h1>Block Webpage</h1>
-      <div>
+      <div className="input-group">
         <label htmlFor="url">Enter URL:</label>
         <input
           type="text"
@@ -40,34 +75,48 @@ const BlockWebpage = () => {
           value={url}
           onChange={(e) => setUrl(e.target.value)}
           placeholder="Enter the URL"
-          style={{ width: '100%', padding: '8px', marginBottom: '10px' }}
         />
       </div>
-      <div>
+
+      <div className="input-group">
         <label htmlFor="startTime">Start Time:</label>
-        <input
-          type="time"
-          id="startTime"
-          value={startTime}
-          onChange={(e) => setStartTime(e.target.value)}
-          style={{ width: '100%', padding: '8px', marginBottom: '10px' }}
-        />
+        <div className="time-selector">
+          <input
+            type="text"
+            id="startTime"
+            value={startTime}
+            onChange={(e) => setStartTime(e.target.value)}
+            placeholder="HH:MM"
+          />
+          <select id="startPeriod" value={startPeriod} onChange={(e) => setStartPeriod(e.target.value)}>
+            <option value="AM">AM</option>
+            <option value="PM">PM</option>
+          </select>
+        </div>
       </div>
-      <div>
+
+      <div className="input-group">
         <label htmlFor="endTime">End Time:</label>
-        <input
-          type="time"
-          id="endTime"
-          value={endTime}
-          onChange={(e) => setEndTime(e.target.value)}
-          style={{ width: '100%', padding: '8px', marginBottom: '10px' }}
-        />
+        <div className="time-selector">
+          <input
+            type="text"
+            id="endTime"
+            value={endTime}
+            onChange={(e) => setEndTime(e.target.value)}
+            placeholder="HH:MM"
+          />
+          <select id="endPeriod" value={endPeriod} onChange={(e) => setEndPeriod(e.target.value)}>
+            <option value="AM">AM</option>
+            <option value="PM">PM</option>
+          </select>
+        </div>
       </div>
-      <div>
+
+      <div className="input-group">
         <label>Select Days:</label>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+        <div className="days-container">
           {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => (
-            <div key={day}>
+            <div key={day} className="day-option">
               <input
                 type="checkbox"
                 id={day}
@@ -79,23 +128,8 @@ const BlockWebpage = () => {
           ))}
         </div>
       </div>
-      <div>
-        <button
-          onClick={handleSubmit}
-          style={{
-            backgroundColor: '#007BFF',
-            color: 'white',
-            padding: '10px 20px',
-            border: 'none',
-            borderRadius: '5px',
-            cursor: 'pointer',
-            marginTop: '20px',
-            width: '100%',
-          }}
-        >
-          Block
-        </button>
-      </div>
+
+      <button className="block-button" onClick={handleSubmit}>Block</button>
     </div>
   );
 };

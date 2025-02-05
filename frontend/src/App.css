@@ -1,3 +1,4 @@
+/* ----------Main page----------- */
 .App {
   text-align: center;
 }
@@ -37,4 +38,150 @@ main > div {
   padding: 20px;
   border-radius: 5px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+/* ----------History page----------- */
+/* Container for the page */
+.history-container {
+  padding: 20px;
+  max-width: 1000px;
+  margin: auto;
+}
+
+/* Title styling */
+.history-title {
+  font-size: 28px;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+/* Dynamic table wrapper */
+.history-table-wrapper {
+  overflow-y: auto;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  max-height: 500px; /* Limits table height */
+  padding: 0; /* Ensures no extra space above */
+  margin: 0;
+}
+
+/* Table styles */
+.history-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 18px;
+}
+
+/* Table header styles */
+.history-table thead {
+  position: sticky;
+  top: 0;
+  background: #f4f4f4;
+  z-index: 2;
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1); /* Adds shadow to header */
+}
+
+/* Center table headers */
+.history-table th {
+  padding: 15px;
+  border: 2px solid #ddd;
+  text-align: center;
+  border-bottom: 4px solid #bbb;
+}
+
+/* Table row and cell styles */
+.history-table td {
+  padding: 15px;
+  border: 2px solid #ddd;
+  text-align: center;
+}
+
+/* Block button styling */
+.block-button {
+  background-color: #FF4D4D;
+  color: white;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  width: 100%;
+}
+
+.block-button:hover {
+  background-color: #d32f2f;
+}
+
+/* ----------Block Webpage page----------- */
+/* General container styling */
+.container {
+  padding: 20px;
+  max-width: 500px;
+  margin: auto;
+  font-family: Arial, sans-serif;
+}
+
+/* Input group styling */
+.input-group {
+  margin-bottom: 15px;
+}
+
+.input-group label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+/* Input field styling */
+input[type="text"] {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+/* Time input and AM/PM dropdown styling */
+.time-selector {
+  display: flex;
+  gap: 10px;
+}
+
+.time-selector input {
+  width: 70%;
+}
+
+.time-selector select {
+  width: 30%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+/* Checkbox container for days */
+.days-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.day-option {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* Submit button styling */
+.block-button {
+  background-color: #007BFF;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  width: 100%;
+  font-size: 16px;
+}
+
+.block-button:hover {
+  background-color: #0056b3;
 }
