@@ -25,26 +25,7 @@ const BlockWebpage = () => {
     }));
   };
 
-  const convertTo24Hour = (time, period) => {
-    const [hours, minutes] = time.split(':').map(Number);
-    let convertedHours = hours;
-
-    if (period === 'AM' && hours === 12) convertedHours = 0;
-    if (period === 'PM' && hours !== 12) convertedHours += 12;
-
-    return `${String(convertedHours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
-  };
-
-  const roundTo30Minutes = (time) => {
-    const [hours, minutes] = time.split(':').map(Number);
-    const totalMinutes = hours * 60 + minutes;
-    const roundedMinutes = Math.round(totalMinutes / 30) * 30;
-    const roundedHours = Math.floor(roundedMinutes / 60);
-    const roundedMinutesRemaining = roundedMinutes % 60;
-    return `${String(roundedHours).padStart(2, '0')}:${String(roundedMinutesRemaining).padStart(2, '0')}`;
-  };
-
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const timePattern = /^([01]?[0-9]|1[0-2]):([0-5]?[0-9])$/;
 
     if (!timePattern.test(startTime) || !timePattern.test(endTime)) {
@@ -52,16 +33,31 @@ const BlockWebpage = () => {
       return;
     }
 
-    const correctedStartTime = convertTo24Hour(startTime, startPeriod);
-    const correctedEndTime = convertTo24Hour(endTime, endPeriod);
+    const data = {
+      url,
+      startTime: `${startTime} ${startPeriod}`,
+      endTime: `${endTime} ${endPeriod}`,
+      selectedDays,
+    };
 
-    const roundedStartTime = roundTo30Minutes(correctedStartTime);
-    const roundedEndTime = roundTo30Minutes(correctedEndTime);
+    try {
+      const response = await fetch('http://localhost:5000/block', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
 
-    console.log('Block URL:', url);
-    console.log('Start Time:', roundedStartTime);
-    console.log('End Time:', roundedEndTime);
-    console.log('Selected Days:', selectedDays);
+      if (response.ok) {
+        alert('Website blocked successfully');
+      } else {
+        alert('Failed to block website');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Error blocking website');
+    }
   };
 
   return (
