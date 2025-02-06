@@ -9,12 +9,14 @@ blocked_websites = []
 
 @app.route('/block', methods=['POST'])
 def block_website():
+    """Successfully added blocked website"""
     data = request.json
     blocked_websites.append(data)
     return jsonify({"message": "Website blocked successfully"}), 201
 
 @app.route('/history', methods=['GET'])
 def get_history():
+    """Updates History Page"""
     return jsonify(blocked_websites), 200
 
 if __name__ == '__main__':
