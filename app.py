@@ -7,6 +7,7 @@ CORS(app)
 # In-memory data store for blocked websites
 blocked_websites = []
 
+
 @app.route('/block', methods=['POST'])
 def block_website():
     """Successfully added blocked website"""
@@ -14,10 +15,12 @@ def block_website():
     blocked_websites.append(data)
     return jsonify({"message": "Website blocked successfully"}), 201
 
+
 @app.route('/history', methods=['GET'])
 def get_history():
     """Updates History Page"""
     return jsonify(blocked_websites), 200
+
 
 if __name__ == '__main__':
     app.run(debug=True)
