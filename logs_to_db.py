@@ -146,4 +146,3 @@ if __name__ == '__main__':
     observer.join()
     cursor.close()
     db.close()
-    
