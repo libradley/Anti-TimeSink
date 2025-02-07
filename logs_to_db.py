@@ -3,7 +3,7 @@ import sqlite3
 import time
 import os
 import logging
-from datetime import datetime
+from datetime import datetime, date
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
