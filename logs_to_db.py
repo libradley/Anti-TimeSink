@@ -85,10 +85,12 @@ def parse_then_insert(log_line):
                 VALUES (?, ?, ?, ?, ?, ?)
                 ''', (timestamp, process_id, query_type, query_domain, query_client, response))
             db.commit()
-            # logging.info(f"Inserted log entry: {timestamp_str} - {process_id} - {query_type} - {query_domain} - {query_client} - {response}")
+            # logging.info(f"Inserted log entry: {timestamp_str} - {process_id}
+            # - {query_type} - {query_domain} - {query_client} - {response}")
 
         except Exception as e:
             logging.error(f"Error inserting log data: {e}")
+
 
 class LogFileHandler(FileSystemEventHandler):
     def __init__(self):
@@ -112,6 +114,7 @@ class LogFileHandler(FileSystemEventHandler):
                 # logging.info(f"Processing log file update...")
                 self.last_processed = current_time
                 process_log_file()
+
 
 def process_log_file():
     '''
@@ -141,6 +144,6 @@ if __name__ == '__main__':
     except KeyboardInterrupt:
         observer.stop()
     observer.join()
-
     cursor.close()
     db.close()
+    
