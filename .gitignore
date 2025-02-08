@@ -1,3 +1,25 @@
 frontend/node_modules/
 frontend/package-lock.json
 
+# ignore virtual environment
+venv/
+
+# ignore python cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# ignore IDE files
+.vscode/
+*.swp
+*.swo
+*.idea/
+
+# ignore logs
+dns_log.db
+*.log
+
+# ignore os-generated files
+.DS_Store
+Thumbs.db
