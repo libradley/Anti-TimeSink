@@ -37,7 +37,7 @@ def block_website():
     try:
         connection = sqlite3.connect('timesink.db')
         cursor = connection.cursor()
-        cursor.execute('''INSERT INTO blocked_websites (url, start_time, end_time, selected_days, status) 
+        cursor.execute('''INSERT INTO blocked_websites (url, start_time, end_time, selected_days, status)
                           VALUES (?, ?, ?, ?, ?)''',
                        (data['url'], data['start_time'], data['end_time'], data['selected_days'], data['status']))
         connection.commit()
