@@ -23,8 +23,8 @@ const HistoryPage = () => {
     // Implement block logic here
   };
 
-  const formatDays = (selectedDays) => {
-    return Object.entries(selectedDays)
+  const formatDays = (start_time) => {
+    return Object.entries(start_time)
       .filter(([day, isSelected]) => isSelected)
       .map(([day]) => day)
       .join(', ');
@@ -48,9 +48,9 @@ const HistoryPage = () => {
             {history.map((job, index) => (
               <tr key={index}>
                 <td>{job.url}</td>
-                <td>{job.startTime}</td>
-                <td>{job.endTime}</td>
-                <td>{formatDays(job.selectedDays)}</td>
+                <td>{job.start_time}</td>
+                <td>{job.end_time}</td>
+                <td>{formatDays(job.selected_days)}</td>
                 <td>
                   <button className="block-button" onClick={() => handleBlock(index)}>Block</button>
                 </td>
