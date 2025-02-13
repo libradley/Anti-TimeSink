@@ -3,9 +3,9 @@ import './App.css'; // Import external CSS file
 
 const BlockWebpage = () => {
   const [url, setUrl] = useState('');
-  const [startTime, setStartTime] = useState('');
-  const [endTime, setEndTime] = useState('');
-  const [selectedDays, setSelectedDays] = useState({
+  const [start_time, setStartTime] = useState('');
+  const [end_time, setEndTime] = useState('');
+  const [selected_days, setSelectedDays] = useState({
     Mon: false,
     Tue: false,
     Wed: false,
@@ -28,16 +28,16 @@ const BlockWebpage = () => {
   const handleSubmit = async () => {
     const timePattern = /^([01]?[0-9]|1[0-2]):([0-5]?[0-9])$/;
 
-    if (!timePattern.test(startTime) || !timePattern.test(endTime)) {
+    if (!timePattern.test(start_time) || !timePattern.test(end_time)) {
       alert('Please enter time in HH:MM format');
       return;
     }
 
     const data = {
       url,
-      startTime: `${startTime} ${startPeriod}`,
-      endTime: `${endTime} ${endPeriod}`,
-      selectedDays,
+      start_time: `${start_time} ${startPeriod}`,
+      end_time: `${end_time} ${endPeriod}`,
+      selected_days,
     };
 
     try {
@@ -75,12 +75,12 @@ const BlockWebpage = () => {
       </div>
 
       <div className="input-group">
-        <label htmlFor="startTime">Start Time:</label>
+        <label htmlFor="start_time">Start Time:</label>
         <div className="time-selector">
           <input
             type="text"
-            id="startTime"
-            value={startTime}
+            id="start_time"
+            value={start_time}
             onChange={(e) => setStartTime(e.target.value)}
             placeholder="HH:MM"
           />
@@ -92,12 +92,12 @@ const BlockWebpage = () => {
       </div>
 
       <div className="input-group">
-        <label htmlFor="endTime">End Time:</label>
+        <label htmlFor="end_time">End Time:</label>
         <div className="time-selector">
           <input
-            type="text"
-            id="endTime"
-            value={endTime}
+            type="end_time"
+            id="end_time"
+            value={end_time}
             onChange={(e) => setEndTime(e.target.value)}
             placeholder="HH:MM"
           />
@@ -116,7 +116,7 @@ const BlockWebpage = () => {
               <input
                 type="checkbox"
                 id={day}
-                checked={selectedDays[day]}
+                checked={selected_days[day]}
                 onChange={() => handleCheckboxChange(day)}
               />
               <label htmlFor={day}>{day}</label>

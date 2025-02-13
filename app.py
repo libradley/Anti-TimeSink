@@ -1,6 +1,7 @@
+import sqlite3
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import sqlite3
+
 
 app = Flask(__name__)
 CORS(app)
@@ -31,15 +32,15 @@ def init_db():
 def block_website():
     """Successfully added blocked website"""
     data = request.json
-    if not data.get('url') or not data.get('start_time') or not data.get('end_time') \
-            or not data.get('selected_days') or not data.get('status'):
+    selected_days = ','.join([day for day, selected in data['selected_days'].items() if selected])
+    if not data.get('url') or not data.get('start_time') or not data.get('end_time') or not data.get('selected_days'):
         return jsonify({"error": "Missing required fields"}), 400
     try:
         connection = sqlite3.connect('timesink.db')
         cursor = connection.cursor()
         cursor.execute('''INSERT INTO blocked_websites (url, start_time, end_time, selected_days, status)
                           VALUES (?, ?, ?, ?, ?)''',
-                       (data['url'], data['start_time'], data['end_time'], data['selected_days'], data['status']))
+                       (data['url'], data['start_time'], data['end_time'], selected_days, 1))
         connection.commit()
         connection.close()
         return jsonify({"message": "Website blocked successfully"}), 201
@@ -55,7 +56,7 @@ def get_history():
     try:
         connection = sqlite3.connect('timesink.db')
         cursor = connection.cursor()
-        cursor.execute('SELECT * FROM blocked_websites')
+        cursor.execute('SELECT * FROM blocked_websites ORDER BY id DESC')
         websites = cursor.fetchall()
         connection.close()
         return jsonify([{
