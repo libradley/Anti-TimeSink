@@ -32,14 +32,14 @@ def block_website():
     """Successfully added blocked website"""
     data = request.json
     if not data.get('url') or not data.get('start_time') or not data.get('end_time') \
-        or not data.get('selected_days') or not data.get('status'):
+            or not data.get('selected_days') or not data.get('status'):
         return jsonify({"error": "Missing required fields"}), 400
     try:
         connection = sqlite3.connect('timesink.db')
         cursor = connection.cursor()
         cursor.execute('''INSERT INTO blocked_websites (url, start_time, end_time, selected_days, status) 
                           VALUES (?, ?, ?, ?, ?)''',
-                        (data['url'], data['start_time'], data['end_time'], data['selected_days'], data['status']))
+                       (data['url'], data['start_time'], data['end_time'], data['selected_days'], data['status']))
         connection.commit()
         connection.close()
         return jsonify({"message": "Website blocked successfully"}), 201
@@ -94,7 +94,10 @@ def get_website():
     except sqlite3.Error as e:
         return jsonify({"error": f"Database error: {str(e)}"}), 500
     except Exception as e:
-        return jsonify({"error": f"An unexpected error occurred: {str(e)}"}), 500   
+        return jsonify({"error": f"An unexpected error occurred: {str(e)}"}), 500
+
+
 if __name__ == '__main__':
     init_db()
+
     app.run(debug=True)
