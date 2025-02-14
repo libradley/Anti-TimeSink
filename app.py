@@ -97,6 +97,7 @@ def get_website():
     except Exception as e:
         return jsonify({"error": f"An unexpected error occurred: {str(e)}"}), 500
 
+
 @app.route('/reblock', methods=['POST'])
 def reblock_website():
     """Re-block a website that has been unblocked"""
@@ -109,7 +110,7 @@ def reblock_website():
         WHERE id = ?
     ''', (data['id'],))
     conn.commit()
-    conn.close()    
+    conn.close()
     return jsonify({"message": "Website re-blocked successfully"}), 200
 
 
