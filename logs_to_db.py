@@ -5,7 +5,7 @@ import os
 import logging
 from datetime import datetime, date
 # from watchdog.observers import Observer
-# from watchdog.events import FileSystemEventHandler
+from watchdog.events import FileSystemEventHandler
 
 # Path to the log file
 LOG_FILE = "./unittest/dnsmasq.log"
