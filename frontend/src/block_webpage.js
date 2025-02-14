@@ -15,8 +15,8 @@ const BlockWebpage = () => {
     Sun: false,
   });
 
-  const [startPeriod, setStartPeriod] = useState('AM'); 
-  const [endPeriod, setEndPeriod] = useState('AM'); 
+  const [startPeriod, setStartPeriod] = useState('AM');
+  const [endPeriod, setEndPeriod] = useState('AM');
 
   const handleCheckboxChange = (day) => {
     setSelectedDays((prevState) => ({
@@ -41,7 +41,7 @@ const BlockWebpage = () => {
     };
 
     try {
-      const response = await fetch('http://localhost:5000/block', {
+      const response = await fetch('http://127.0.0.1:5000/block', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
