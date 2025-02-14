@@ -64,7 +64,7 @@ def get_history():
             'url': website[1],
             'start_time': website[2],
             'end_time': website[3],
-            'selected_days': website[4],
+            'selected_days': website[4].split(','),
             'status': website[5]
         } for website in websites]), 200
     except sqlite3.Error as e:
@@ -96,6 +96,22 @@ def get_website():
         return jsonify({"error": f"Database error: {str(e)}"}), 500
     except Exception as e:
         return jsonify({"error": f"An unexpected error occurred: {str(e)}"}), 500
+
+
+@app.route('/reblock', methods=['POST'])
+def reblock_website():
+    """Re-block a website that has been unblocked"""
+    data = request.json
+    conn = sqlite3.connect('timesink.db')
+    cursor = conn.cursor()
+    cursor.execute('''
+        UPDATE blocked_websites
+        SET status = '1'
+        WHERE id = ?
+    ''', (data['id'],))
+    conn.commit()
+    conn.close()
+    return jsonify({"message": "Website re-blocked successfully"}), 200
 
 
 # New Routes for Statistics.js
