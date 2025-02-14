@@ -41,7 +41,7 @@ def block_website():
         cursor.execute('''
             INSERT INTO blocked_websites (url, start_time, end_time, selected_days, status)
             VALUES (?, ?, ?, ?, ?)''',
-            (data['url'], data['start_time'], data['end_time'], selected_days, 1))
+                (data['url'], data['start_time'], data['end_time'], selected_days, 1))
         connection.commit()
         connection.close()
         return jsonify({"message": "Website blocked successfully"}), 201
@@ -123,6 +123,7 @@ def get_clients():
     except Exception as e:
         return jsonify({"error": f"An unexpected error occurred: {str(e)}"}), 500
 
+
 # Queries by date
 @app.route('/queries_by_date', methods=['GET'])
 def get_queries_by_date():
@@ -187,6 +188,7 @@ def get_queries_by_date():
     except Exception as e:
         return jsonify({"error": f"An unexpected error occurred: {str(e)}"}), 500
 
+
 @app.route('/top_queries', methods=['GET'])
 def get_top_queries():
     """Fetch the top queries for a specific client over a specified number of days"""
@@ -216,7 +218,7 @@ def get_top_queries():
 
         # prepare results for requested queries
         results['requested'] = {
-            "queries": [{ "domain": row[0], "count": row[1] } for row in top_queries]
+            "queries": [{"domain": row[0], "count": row[1]} for row in top_queries]
         }
 
         # Grabs all queries that then result in a config response
@@ -238,7 +240,7 @@ def get_top_queries():
 
         # prepare results for blocked queries
         results['requested_and_blocked'] = {
-            "queries": [{ "domain": row[0], "count": row[1] } for row in top_blocked]
+            "queries": [{"domain": row[0], "count": row[1]} for row in top_blocked]
         }
         # close the connection
         conn.close()

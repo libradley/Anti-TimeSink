@@ -4,8 +4,8 @@ import time
 import os
 import logging
 from datetime import datetime, date
-from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler
+# from watchdog.observers import Observer
+# from watchdog.events import FileSystemEventHandler
 
 # Path to the log file
 LOG_FILE = "./unittest/dnsmasq.log"
@@ -46,7 +46,10 @@ def parse_then_insert(log_line):
         and parses it using the regex pattern
         then inserts the parsed data into the db
     '''
-    insert_query = "INSERT INTO dns_log (timestamp, process_id, query_type, query_domain, query_client, response) VALUES (?, ?, ?, ?, ?, ?)"
+    insert_query = """
+        INSERT INTO dns_log (timestamp, process_id, query_type, query_domain, query_client, response)
+        VALUES (?, ?, ?, ?, ?, ?)
+    """
     match = log_pattern.match(log_line)
 
     if match:
