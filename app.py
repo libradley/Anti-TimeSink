@@ -40,8 +40,7 @@ def block_website():
         cursor = connection.cursor()
         cursor.execute('''
             INSERT INTO blocked_websites (url, start_time, end_time, selected_days, status)
-            VALUES (?, ?, ?, ?, ?)''',
-                (data['url'], data['start_time'], data['end_time'], selected_days, 1))
+            VALUES (?, ?, ?, ?, ?)''', (data['url'], data['start_time'], data['end_time'], selected_days, 1))
         connection.commit()
         connection.close()
         return jsonify({"message": "Website blocked successfully"}), 201
@@ -131,7 +130,7 @@ def get_queries_by_date():
     try:
         # sort out the parameters
         query_type_pattern = '%query%'  # Search only for queries with query in the type
-        query_date = str(request.args.get('date')) # Date from front end
+        query_date = str(request.args.get('date'))  # Date from front end
         start_time = f"{query_date} 00:00:00"  # Start of the day
         limit = int(request.args.get('limit', 10))  # Queries per page
         offset = int(request.args.get('offset', 0))  # Page number
