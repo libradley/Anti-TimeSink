@@ -46,8 +46,9 @@ def parse_then_insert(log_line):
         and parses it using the regex pattern
         then inserts the parsed data into the db
     '''
-
+    insert_query = "INSERT INTO dns_log (timestamp, process_id, query_type, query_domain, query_client, response) VALUES (?, ?, ?, ?, ?, ?)"
     match = log_pattern.match(log_line)
+
     if match:
         try:
             # get full date from log line
@@ -68,22 +69,13 @@ def parse_then_insert(log_line):
                 query_type = msg_parts[0] if len(msg_parts) > 0 else None
                 query_domain = msg_parts[1] if len(msg_parts) > 1 else None
                 query_client = msg_parts[-1] if len(msg_parts) > 2 else None
+                cursor.execute(insert_query, (timestamp, process_id, query_type, query_domain, query_client, response))
             if 'config' in message:
                 msg_parts = message.split(' ')
                 query_type = msg_parts[0] if len(msg_parts) > 0 else None
                 query_domain = msg_parts[1] if len(msg_parts) > 1 else None
                 response = msg_parts[-1] if len(msg_parts) > 2 else None
-
-            cursor.execute('''
-                INSERT INTO dns_log (
-                    timestamp,
-                    process_id,
-                    query_type,
-                    query_domain,
-                    query_client,
-                    response)
-                VALUES (?, ?, ?, ?, ?, ?)
-                ''', (timestamp, process_id, query_type, query_domain, query_client, response))
+                cursor.execute(insert_query, (timestamp, process_id, query_type, query_domain, query_client, response))
             db.commit()
             # logging.info(f"Inserted log entry: {timestamp_str} - {process_id}
             # - {query_type} - {query_domain} - {query_client} - {response}")
@@ -132,17 +124,18 @@ def process_log_file():
 
 
 if __name__ == '__main__':
-    # Create an observer and handler
-    observer = Observer()
-    event_handler = LogFileHandler()
-    observer.schedule(event_handler, path=os.path.abspath(LOG_FILE), recursive=False)
-    observer.start()
+    # # Create an observer and handler
+    # observer = Observer()
+    # event_handler = LogFileHandler()
+    # observer.schedule(event_handler, path=os.path.abspath(LOG_FILE), recursive=False)
+    # observer.start()
 
-    try:
-        while True:
-            time.sleep(1)
-    except KeyboardInterrupt:
-        observer.stop()
-    observer.join()
-    cursor.close()
-    db.close()
+    # try:
+    #     while True:
+    #         time.sleep(1)
+    # except KeyboardInterrupt:
+    #     observer.stop()
+    # observer.join()
+    # cursor.close()
+    # db.close()
+    process_log_file()
