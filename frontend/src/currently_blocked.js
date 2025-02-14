@@ -5,9 +5,9 @@ import './App.css';
 function CurrentlyBlocked() {
   const [blockedWebsites, setBlockedWebsites] = useState([]);
   const [loading, setLoading] = useState(true);
- 
+
   useEffect(() => {
-    axios.get('http://localhost:5000/current_block')
+    axios.get('http://127.0.0.1:5000/current_block')
     .then(response => {
       setBlockedWebsites(response.data);
       setLoading(false);

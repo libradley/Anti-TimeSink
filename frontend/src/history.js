@@ -8,7 +8,7 @@ const HistoryPage = () => {
 
   const fetchHistory = async () => {
     try {
-      const response = await fetch('http://localhost:5000/history');
+      const response = await fetch('http://127.0.0.1:5000/history');
       const data = await response.json();
       setHistory(data);
     } catch (error) {
@@ -17,6 +17,16 @@ const HistoryPage = () => {
   };
 
   useEffect(() => {
+    const fetchHistory = async () => {
+      try {
+        const response = await fetch('http://127.0.0.1:5000/history');
+        const data = await response.json();
+        setHistory(data);
+      } catch (error) {
+        console.error('Error fetching history:', error);
+      }
+    };
+
     fetchHistory();
   }, []);
 
@@ -35,7 +45,7 @@ const HistoryPage = () => {
 
     try {
       if (job.status === 'unblocked') {
-        const response = await fetch('http://localhost:5000/reblock', {
+        const response = await fetch('http://127.0.0.1:5000/reblock', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -50,7 +60,7 @@ const HistoryPage = () => {
           enqueueSnackbar('Failed to re-block website.', { variant: 'error' });
         }
       } else {
-        const response = await fetch('http://localhost:5000/check_block', {
+        const response = await fetch('http://127.0.0.1:5000/check_block', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -62,7 +72,7 @@ const HistoryPage = () => {
         if (result.exists) {
           enqueueSnackbar(result.message, { variant: 'info', anchorOrigin: { vertical: 'top', horizontal: 'left' } });
         } else {
-          const blockResponse = await fetch('http://localhost:5000/block', {
+          const blockResponse = await fetch('http://127.0.0.1:5000/block', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
