@@ -5,7 +5,7 @@ from crontab import CronTab
 
 # Initialize the SQLite database connection
 def init_db():
-    return sqlite3.connect("blocked_websites.db")
+    return sqlite3.connect("timesink.db")
 
 # Convert 12-hour AM/PM time to 24-hour format
 def convert_to_24hr(time_str):
@@ -70,7 +70,7 @@ def update_cron_jobs():
         start_hour, start_minute = convert_to_24hr(start_time)
         end_hour, end_minute = convert_to_24hr(end_time)
 
-        if status == "blocked":
+        if status == 1:
             if start_hour > end_hour or (start_hour == end_hour and start_minute > end_minute):
                 # Cross-midnight case: block in the evening, unblock in the morning
                 cron.new(command=f"/usr/local/bin/block_website.sh {url}", 
