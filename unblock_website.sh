@@ -1,7 +1,7 @@
 #!/bin/bash
 
 URL=$1
-BLOCKLIST="/etc/dnsmasq.d/blocked-sites.conf"
+BLOCKLIST="/etc/dnsmasq.blacklist"
 
 # Remove the URL from the blocklist
 sed -i "\|address=/$URL/0.0.0.0|d" "$BLOCKLIST"

@@ -71,22 +71,11 @@ def update_cron_jobs():
         end_hour, end_minute = convert_to_24hr(end_time)
 
         if status == 1:
-            if start_hour > end_hour or (start_hour == end_hour and start_minute > end_minute):
-                # Cross-midnight case: block in the evening, unblock in the morning
-                cron.new(command=f"/usr/local/bin/block_website.sh {url}", 
-                         comment="website_blocker").setall(f"{start_minute} {start_hour} * * {cron_days}")
-                cron.new(command=f"/usr/local/bin/unblock_website.sh {url}", 
-                         comment="website_blocker").setall(f"0 0 * * {cron_days}")
-                cron.new(command=f"/usr/local/bin/block_website.sh {url}", 
-                         comment="website_blocker").setall(f"0 0 * * {increment_days(cron_days)}")
-                cron.new(command=f"/usr/local/bin/unblock_website.sh {url}", 
-                         comment="website_blocker").setall(f"{end_minute} {end_hour} * * {increment_days(cron_days)}")
-            else:
-                # Normal case: block and unblock on the same day
-                cron.new(command=f"/usr/local/bin/block_website.sh {url}", 
-                         comment="website_blocker").setall(f"{start_minute} {start_hour} * * {cron_days}")
-                cron.new(command=f"/usr/local/bin/unblock_website.sh {url}", 
-                         comment="website_blocker").setall(f"{end_minute} {end_hour} * * {cron_days}")
+            # Normal case: block and unblock on the same day
+            cron.new(command=f"/usr/local/bin/block_website.sh {url}", 
+                        comment="website_blocker").setall(f"{start_minute} {start_hour} * * {cron_days}")
+            cron.new(command=f"/usr/local/bin/unblock_website.sh {url}", 
+                        comment="website_blocker").setall(f"{end_minute} {end_hour} * * {cron_days}")
 
     # Write the cron jobs to the crontab
     cron.write()

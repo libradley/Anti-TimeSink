@@ -26,7 +26,25 @@ const BlockWebpage = () => {
     }));
   };
 
+  const convertTo24Hour = (hour, minute, period) => {
+    let hr = parseInt(hour);
+    if (period === 'PM' && hr !== 12) {
+      hr += 12;
+    } else if (period === 'AM' && hr === 12) {
+      hr = 0;
+    }
+    return `${String(hr).padStart(2, '0')}:${minute}`;
+  };
+
   const handleSubmit = async () => {
+    const startTime24 = convertTo24Hour(startHour, startMinute, startPeriod);
+    const endTime24 = convertTo24Hour(endHour, endMinute, endPeriod);
+
+    if (startTime24 >= endTime24) {
+      alert('Start time must be before end time.');
+      return;
+    }
+
     const data = {
       url,
       start_time: `${startHour}:${startMinute} ${startPeriod}`,

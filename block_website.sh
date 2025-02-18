@@ -1,7 +1,7 @@
 #!/bin/bash
 
 URL=$1
-BLOCKLIST="/etc/dnsmasq.d/blocked-sites.conf"
+BLOCKLIST="/etc/dnsmasq.blacklist"
 
 # Ensure the URL is not already blocked
 if ! grep -q "address=/$URL/0.0.0.0" "$BLOCKLIST"; then
