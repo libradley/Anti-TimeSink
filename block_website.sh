@@ -1,7 +1,7 @@
 #!/bin/bash
 
 URL=$1
-BLOCKLIST="/etc/dnsmasq.blacklist"
+BLOCKLIST="/home/samuelparkman/anti_timesink/dnsmasq.blacklist"
 
 # Ensure the URL is not already blocked
 if ! grep -q "address=/$URL/0.0.0.0" "$BLOCKLIST"; then
@@ -11,9 +11,5 @@ else
     echo "$URL is already blocked."
 fi
 
-# Restart dnsmasq to apply changes
-systemctl restart dnsmasq
-
-
-# To use call this sudo ./block_website.sh facebook.com
-# Cron job example 0 8 * * * root /path/to/block_website.sh facebook.com
+# Restart dnsmasq as sudo (but without password prompt)
+sudo systemctl restart dnsmasq

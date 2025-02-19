@@ -1,5 +1,6 @@
 import sqlite3
 import re
+import os
 
 from crontab import CronTab
 
@@ -32,18 +33,6 @@ def day_to_cron(day):
     }
     return days.get(day, "*")  # Default to '*' if invalid
 
-# Function to increment days for cross-midnight handling
-def increment_days(day_str):
-    days = day_str.split(",")
-    new_days = []
-    for day in days:
-        if day == "*":
-            new_days.append("*")
-        else:
-            new_day = (int(day) + 1) % 7 if int(day) < 7 else 1
-            new_days.append(str(new_day))
-    return ",".join(new_days)
-
 # Function to update the crontab jobs
 def update_cron_jobs():
     conn = init_db()
@@ -62,6 +51,10 @@ def update_cron_jobs():
     # Clear previous jobs related to website blocking
     cron.remove_all(comment="website_blocker")
 
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    block_script = os.path.join(script_dir, "block_website.sh")
+    unblock_script = os.path.join(script_dir, "unblock_website.sh")
+
     for row in rows:
         url, start_time, end_time, selected_days, status = row
         days = selected_days.split(",")
@@ -72,15 +65,14 @@ def update_cron_jobs():
 
         if status == 1:
             # Normal case: block and unblock on the same day
-            cron.new(command=f"/usr/local/bin/block_website.sh {url}", 
-                        comment="website_blocker").setall(f"{start_minute} {start_hour} * * {cron_days}")
-            cron.new(command=f"/usr/local/bin/unblock_website.sh {url}", 
-                        comment="website_blocker").setall(f"{end_minute} {end_hour} * * {cron_days}")
+            cron.new(command=f"{block_script} {url}", 
+                     comment="website_blocker").setall(f"{start_minute} {start_hour} * * {cron_days}")
+            cron.new(command=f"{unblock_script} {url}", 
+                     comment="website_blocker").setall(f"{end_minute} {end_hour} * * {cron_days}")
 
     # Write the cron jobs to the crontab
     cron.write()
     print("Cron jobs updated successfully.")
-
 
 if __name__ == "__main__":
     update_cron_jobs()
