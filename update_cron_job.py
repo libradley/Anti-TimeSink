@@ -1,6 +1,7 @@
 import sqlite3
 import re
 import os
+import subprocess
 
 from crontab import CronTab
 
@@ -33,6 +34,28 @@ def day_to_cron(day):
     }
     return days.get(day, "*")  # Default to '*' if invalid
 
+def unblock_website(url):
+    blocklist = "/home/samuelparkman/anti_timesink/dnsmasq.blacklist"
+    
+    # Escape special characters in the URL
+    escaped_url = url.replace("/", "\\/")
+    
+    # Read the blocklist file
+    with open(blocklist, "r") as file:
+        lines = file.readlines()
+    
+    # Remove the URL from the blocklist
+    with open(blocklist, "w") as file:
+        for line in lines:
+            if f"address=/{escaped_url}/0.0.0.0" not in line:
+                file.write(line)
+    
+    print(f"Unblocking: {url}")
+    
+    # Restart dnsmasq to apply changes
+    subprocess.run(["sudo", "systemctl", "restart", "dnsmasq"], check=True)
+
+
 # Function to update the crontab jobs
 def update_cron_jobs():
     conn = init_db()
@@ -48,31 +71,49 @@ def update_cron_jobs():
     # Access the user's crontab
     cron = CronTab(user=True)
 
-    # Clear previous jobs related to website blocking
-    cron.remove_all(comment="website_blocker")
-
     script_dir = os.path.dirname(os.path.abspath(__file__))
     block_script = os.path.join(script_dir, "block_website.sh")
     unblock_script = os.path.join(script_dir, "unblock_website.sh")
 
     for row in rows:
+        add_cron_job = True
+        delete_cron_job = None
         url, start_time, end_time, selected_days, status = row
         days = selected_days.split(",")
         cron_days = ",".join(str(day_to_cron(day)) for day in days)
 
         start_hour, start_minute = convert_to_24hr(start_time)
         end_hour, end_minute = convert_to_24hr(end_time)
+        if cron is not None:
+            for job in cron:
 
-        if status == 1:
-            # Normal case: block and unblock on the same day
+                # IF URL is in cron job
+                if url in job.command:                 
+                        job_time = f"{job.minute} {job.hour} * * {job.dow}"
+                        block_time = f"{start_minute} {start_hour} * * {cron_days}"
+                        unblock_time = f"{end_minute} {end_hour} * * {cron_days}"
+                        if job_time in [block_time, unblock_time]:
+                            # Remove cron job if status is 0 and remove it from the DNSMASQ Blacklist
+                            if status == 0:
+                                delete_cron_job = True
+                                break
+                            else:   
+                                add_cron_job = False
+                                break
+        if add_cron_job is True:
             cron.new(command=f"{block_script} {url}", 
-                     comment="website_blocker").setall(f"{start_minute} {start_hour} * * {cron_days}")
+                    comment="website_blocker").setall(f"{start_minute} {start_hour} * * {cron_days}")
             cron.new(command=f"{unblock_script} {url}", 
-                     comment="website_blocker").setall(f"{end_minute} {end_hour} * * {cron_days}")
-
-    # Write the cron jobs to the crontab
-    cron.write()
-    print("Cron jobs updated successfully.")
+                    comment="website_unblocker").setall(f"{end_minute} {end_hour} * * {cron_days}")
+            cron.write()
+            print("Added cron job for:", url)
+            
+        elif delete_cron_job is True:
+            if status == 0:
+                cron.remove(job)
+                unblock_website(url)
+                cron.write()
+                print("Removed cron job for:", url)
 
 if __name__ == "__main__":
     update_cron_jobs()

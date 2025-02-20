@@ -270,13 +270,12 @@ def get_top_queries():
     except sqlite3.Error as e:
         return jsonify({"error": f"Database error: {str(e)}"}), 500
     except Exception as e:
-        return jsonify({"error": f"An unexpected error occurred: {str(e)}"}), 500
-    
+        return jsonify({"error": f"An unexpected error occurred: {str(e)}"}), 500   
 
 def run_scheduler():
     while True:
         update_cron_jobs()
-        time.sleep(300)  # Sleep for 5 minutes
+        time.sleep(20)  # Sleep for 5 minutes
 
 # Start background thread
 threading.Thread(target=run_scheduler, daemon=True).start()
