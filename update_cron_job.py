@@ -5,9 +5,11 @@ import subprocess
 
 from crontab import CronTab
 
+
 # Initialize the SQLite database connection
 def init_db():
     return sqlite3.connect("timesink.db")
+
 
 # Convert 12-hour AM/PM time to 24-hour format
 def convert_to_24hr(time_str):
@@ -26,6 +28,7 @@ def convert_to_24hr(time_str):
 
     return hour, minute
 
+
 # Function to convert day names to cron format
 def day_to_cron(day):
     days = {
@@ -33,6 +36,7 @@ def day_to_cron(day):
         "Fri": 5, "Sat": 6, "Sun": 7
     }
     return days.get(day, "*")  # Default to '*' if invalid
+
 
 def unblock_website(url):
     blocklist = "/home/samuelparkman/anti_timesink/dnsmasq.blacklist"
@@ -109,11 +113,10 @@ def update_cron_jobs():
             print("Added cron job for:", url)
 
         elif delete_cron_job is True:
-            if status == 0:
-                cron.remove(job)
-                unblock_website(url)
-                cron.write()
-                print("Removed cron job for:", url)
+            cron.remove(job)
+            unblock_website(url)
+            cron.write()
+            print("Removed cron job for:", url)
 
 
 if __name__ == "__main__":
