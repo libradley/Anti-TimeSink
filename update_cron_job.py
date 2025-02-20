@@ -93,7 +93,7 @@ def update_cron_jobs():
             for job in cron:
 
                 # IF URL is in cron job
-                if url in job.command:                 
+                if url in job.command:      
                     job_time = f"{job.minute} {job.hour} * * {job.dow}"
                     block_time = f"{start_minute} {start_hour} * * {cron_days}"
                     unblock_time = f"{end_minute} {end_hour} * * {cron_days}"
@@ -102,14 +102,14 @@ def update_cron_jobs():
                         if status == 0:
                             delete_cron_job = True
                             break
-                        else:   
+                        else:
                             add_cron_job = False
                             break
         if add_cron_job is True:
             cron.new(command=f"{block_script} {url}",
-                comment="website_blocker").setall(f"{start_minute} {start_hour} * * {cron_days}")
+                    comment="website_blocker").setall(f"{start_minute} {start_hour} * * {cron_days}")
             cron.new(command=f"{unblock_script} {url}",
-                comment="website_unblocker").setall(f"{end_minute} {end_hour} * * {cron_days}")
+                    comment="website_unblocker").setall(f"{end_minute} {end_hour} * * {cron_days}")
             cron.write()
             print("Added cron job for:", url)
 
