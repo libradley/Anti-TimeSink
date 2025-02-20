@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { BarChart, Bar, XAxis, YAxis, PieChart, Pie, Cell, Tooltip, CartesianGrid, Legend } from 'recharts';
 
 const StatisticsPage = () => {
   // This function loads the statistics page.
@@ -16,6 +17,9 @@ const StatisticsPage = () => {
   const [days_ago, setDaysAgo] = useState(0);
   const [top_queries_data, setTopQueriesData] = useState(null);
   const [clients, setClients] = useState([]);   // For dropdown list of clients
+  // graph states
+  const [graph_data, setGraphData] = useState([]);
+  const [query_type_data, setQueryTypeData] = useState([]);
 
   // This function fetches the list of clients from the API endpoint and sets the state.
   useEffect(() => {
@@ -30,6 +34,107 @@ const StatisticsPage = () => {
     };
     fetchClients();
   }, []);
+
+  // Graphical Data pie chart
+  useEffect(() => {
+    const fetchQueryTypeData = async () => {
+      try {
+        const response = await fetch(`${host_url}/query_type_breakdown`);
+        const data = await response.json();
+
+        // change data into array for recharts
+        const formattedData = Object.entries(data).map(([key, value]) => ({
+          name: key,
+          value: value,
+        }));
+
+        setQueryTypeData(formattedData);
+      } catch (error) {
+        console.error("Error fetching query type data:", error);
+      }
+    };
+
+    // Fetch graph data immediately on component mount
+    fetchQueryTypeData();
+
+    // Set up interval to fetch graph data every 15 minutes
+    const interval = setInterval(() => {
+      fetchQueryTypeData();
+    }, 15 * 60 * 1000); // 15 minutes in milliseconds
+
+    // Clear interval on component unmount to prevent memory leaks
+    return () => clearInterval(interval);
+  }, []); // Empty dependency array to only set up interval once
+
+  // Graphical Data bar chart
+  useEffect(() => {
+    const fetchGraphData = async () => {
+      try {
+        const response = await fetch(`${host_url}/query_graph`);
+        const data = await response.json();
+        setGraphData(data);
+      } catch (error) {
+        console.error("Error fetching graph data:", error);
+      }
+    };
+
+    // Fetch graph data immediately on component mount
+    fetchGraphData();
+
+    // Set up interval to fetch graph data every 15 minutes
+    const interval = setInterval(() => {
+      fetchGraphData();
+    }, 15 * 60 * 1000); // 15 minutes in milliseconds
+
+    // Clear interval on component unmount to prevent memory leaks
+    return () => clearInterval(interval);
+  }, []);
+
+  const QueryGraph = ({ data }) => {
+    return (
+      // Bar chart for last 24 hours queries allowed and blocked
+      <BarChart width={800} height={300} data={data}>
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis dataKey="time" />
+        <YAxis />
+        <Tooltip />
+        <Legend />
+        <Bar dataKey="allowed" fill="#004225" />
+        <Bar dataKey="blocked" fill="#FF0000" />
+      </BarChart>
+    )
+  };
+
+  const QueryTypePie = ({ data }) => {
+    const COLORS = [
+      '#0088FE', '#00C49F', '#FFBB28', '#FF8042',
+      '#845EC2', '#FF6F91', '#FFC75F', '#F9F871', '#D65DB1'
+    ];
+
+    return (
+      // Pie chart for last 24 hours query type breakdown
+      <div>
+        <PieChart width={800} height={300}>
+          <Pie
+            data={data}
+            dataKey="value"
+            nameKey="name"
+            cx="50%"
+            cy="50%"
+            outerRadius={100}
+            fill="#8884d8"
+            label
+          >
+            {data.map((entry, index) => (
+              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+            ))}
+          </Pie>
+          <Tooltip />
+          <Legend layout="vertical" align="right" vertical_align="top"/>
+        </PieChart>
+      </div>
+    );
+  }
 
   // This function handles the queries listed reverse chronological order to selected date.
   const fetchQueriesByDate = async () => {
@@ -61,7 +166,7 @@ const StatisticsPage = () => {
       // Parse the response and set the state
       const data = await response.json();
       setTopQueriesData(data);
-      
+
     } catch (error) {
       console.error("Error fetching top queries by client:", error);
     }
@@ -99,6 +204,7 @@ const StatisticsPage = () => {
   };
 
   return (
+    // Initial statistics page with buttons to select and graphs provided
     <div>
       <h1>DNS Server Statistics</h1>
 
@@ -116,9 +222,18 @@ const StatisticsPage = () => {
               Top Queries By Client
             </button>
           </div>
+          <div>
+            <h3>Last 24 hour Query Statistics</h3>
+            <QueryGraph data={graph_data} />
+          </div>
+          <div className="chart-container">
+            <h3>Query Breakdown (last 24 hours)</h3>
+            <QueryTypePie data={query_type_data} />
+          </div>
         </div>
       )}
 
+      {/* Form for the queries by date */}
       {selected_form === "queriesByDate" && (
         <form onSubmit={handleFormSubmit}>
           <h3>See queries in reverse chronological order back to specified date.</h3>
@@ -164,6 +279,7 @@ const StatisticsPage = () => {
         </form>
       )}
 
+      {/* Build out table for the queries by date */}
       {queries_data.length > 0 && selected_form === "queriesByDate" && (
         <div>
           <table>
@@ -190,6 +306,7 @@ const StatisticsPage = () => {
         </div>
       )}
 
+      {/* Form for the queries by client */}
       {selected_form === "topQueriesByClient" && (
         <form onSubmit={handleFormSubmit}>
           <h3>See queries by client, top ten allowed and top ten blocked.</h3>
@@ -235,9 +352,11 @@ const StatisticsPage = () => {
         </form>
       )}
 
+      {/* Build out tables for top queries allowed and blocked
+          by client and date range selected to now */}
       {top_queries_data && selected_form === "topQueriesByClient" && (
         <div>
-          <h3>Top 10 Requested and Delivered Queries</h3>
+          <h3>Top 10 Requested Queries</h3>
           <table>
             <thead>
               <tr>
