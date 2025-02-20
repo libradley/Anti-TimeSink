@@ -101,9 +101,10 @@ def update_cron_jobs():
                         # Remove cron job if status is 0 and remove it from the DNSMASQ Blacklist
                         if status == 0:
                             delete_cron_job = True
+                            break
                         else:   
                             add_cron_job = False
-                        break
+                            break
         if add_cron_job is True:
             cron.new(command=f"{block_script} {url}",
                 comment="website_blocker").setall(f"{start_minute} {start_hour} * * {cron_days}")
