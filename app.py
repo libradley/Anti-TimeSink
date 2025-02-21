@@ -289,13 +289,13 @@ def query_graph():
         # Count blocked and forwarded queries in this hour
         blocked_count = cursor.execute("""
             SELECT COUNT(*) FROM dns_log
-            WHERE query_type = 'config' AND timestamp BETWEEN ? AND ?""",
-            (hour_start, hour_end)).fetchone()[0]
+            WHERE query_type = 'config' AND timestamp BETWEEN ? AND ?
+            """, (hour_start, hour_end)).fetchone()[0]
 
         forwarded_count = cursor.execute("""
             SELECT COUNT(*) FROM dns_log
-            WHERE query_type LIKE '%query%' AND timestamp BETWEEN ? AND ?""",
-            (hour_start, hour_end)).fetchone()[0]
+            WHERE query_type LIKE '%query%' AND timestamp BETWEEN ? AND ?
+            """, (hour_start, hour_end)).fetchone()[0]
 
         data.append({
             "time": hour.strftime("%H:%M"),
@@ -351,6 +351,7 @@ def query_type_breakdown():
 def start_processing_log():
     thread = threading.Thread(target=log_processor.start_processing, daemon=True)
     thread.start()
+
 
 if __name__ == '__main__':
     init_db()   # blocked websites database
