@@ -11,6 +11,7 @@ CORS(app)
 # In-memory data store for blocked websites
 blocked_websites = []
 
+
 def init_db():
     try:
         connection = sqlite3.connect('timesink.db')
