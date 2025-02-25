@@ -101,6 +101,7 @@ def get_website():
     except Exception as e:
         return jsonify({"error": f"An unexpected error occurred: {str(e)}"}), 500
 
+
 @app.route('/current_block/<int:id>', methods=['PUT'])
 def update_website(id):
     """Update the details of a blocked website"""
@@ -110,7 +111,7 @@ def update_website(id):
     try:
         connection = sqlite3.connect('timesink.db')
         cursor = connection.cursor()
-        cursor.execute('''UPDATE blocked_websites SET start_time = ?, end_time = ?, selected_days = ? 
+        cursor.execute('''UPDATE blocked_websites SET start_time = ?, end_time = ?, selected_days = ?
                           WHERE id = ?''', (data['start_time'], data['end_time'], data['selected_days'], id))
         connection.commit()
         connection.close()
@@ -135,6 +136,7 @@ def delete_website(id):
         return jsonify({"error": f"Database error: {str(e)}"}), 500
     except Exception as e:
         return jsonify({"error": f"An unexpected error occurred: {str(e)}"}), 500
+
 
 @app.route('/reblock', methods=['POST'])
 def reblock_website():
