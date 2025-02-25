@@ -101,6 +101,40 @@ def get_website():
     except Exception as e:
         return jsonify({"error": f"An unexpected error occurred: {str(e)}"}), 500
 
+@app.route('/current_block/<int:id>', methods=['PUT'])
+def update_website(id):
+    """Update the details of a blocked website"""
+    data = request.json
+    if not data.get('start_time') or not data.get('end_time') or not data.get('selected_days'):
+        return jsonify({"error": "Missing required fields"}), 400
+    try:
+        connection = sqlite3.connect('timesink.db')
+        cursor = connection.cursor()
+        cursor.execute('''UPDATE blocked_websites SET start_time = ?, end_time = ?, selected_days = ? 
+                          WHERE id = ?''', (data['start_time'], data['end_time'], data['selected_days'], id))
+        connection.commit()
+        connection.close()
+        return jsonify({"message": "Website updated successfully"}), 200
+    except sqlite3.Error as e:
+        return jsonify({"error": f"Database error: {str(e)}"}), 500
+    except Exception as e:
+        return jsonify({"error": f"An unexpected error occurred: {str(e)}"}), 500
+
+
+@app.route('/current_block/<int:id>', methods=['DELETE'])
+def delete_website(id):
+    """Delete a blocked website"""
+    try:
+        connection = sqlite3.connect('timesink.db')
+        cursor = connection.cursor()
+        cursor.execute('''DELETE FROM blocked_websites WHERE id = ?''', (id,))
+        connection.commit()
+        connection.close()
+        return jsonify({"message": "Website deleted successfully"}), 200
+    except sqlite3.Error as e:
+        return jsonify({"error": f"Database error: {str(e)}"}), 500
+    except Exception as e:
+        return jsonify({"error": f"An unexpected error occurred: {str(e)}"}), 500
 
 @app.route('/reblock', methods=['POST'])
 def reblock_website():
