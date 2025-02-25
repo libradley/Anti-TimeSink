@@ -3,6 +3,8 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from datetime import datetime, timedelta
 import threading
+import time
+from update_cron_job import update_cron_jobs
 import log_processor
 
 app = Flask(__name__)
@@ -342,16 +344,19 @@ def query_type_breakdown():
         return jsonify({"error": f"An unexpected error occurred: {str(e)}"}), 500
 
 
-# def run_scheduler():
-#     """updates the cron job"""
-#     while True:
-#         update_cron_jobs()
-#         time.sleep(300)     # Sleep for 5 minutes
-
-# threading.Thread(target=run_scheduler,daemon=True).start()
 def start_processing_log():
     thread = threading.Thread(target=log_processor.start_processing, daemon=True)
     thread.start()
+
+    
+def run_scheduler():
+    while True:
+        update_cron_jobs()
+        time.sleep(20)  # Sleep for 5 minutes
+
+        
+# Start background thread
+threading.Thread(target=run_scheduler, daemon=True).start()
 
 
 if __name__ == '__main__':
