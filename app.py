@@ -348,13 +348,13 @@ def start_processing_log():
     thread = threading.Thread(target=log_processor.start_processing, daemon=True)
     thread.start()
 
-    
+
 def run_scheduler():
     while True:
         update_cron_jobs()
         time.sleep(20)  # Sleep for 5 minutes
 
-        
+
 # Start background thread
 threading.Thread(target=run_scheduler, daemon=True).start()
 
