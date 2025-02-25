@@ -2,6 +2,10 @@ import sqlite3
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from datetime import datetime
+import threading
+import time
+from update_cron_job import update_cron_jobs
+
 
 app = Flask(__name__)
 CORS(app)
@@ -267,6 +271,16 @@ def get_top_queries():
         return jsonify({"error": f"Database error: {str(e)}"}), 500
     except Exception as e:
         return jsonify({"error": f"An unexpected error occurred: {str(e)}"}), 500
+
+
+def run_scheduler():
+    while True:
+        update_cron_jobs()
+        time.sleep(20)  # Sleep for 5 minutes
+
+
+# Start background thread
+threading.Thread(target=run_scheduler, daemon=True).start()
 
 
 if __name__ == '__main__':
