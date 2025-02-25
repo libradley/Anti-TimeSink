@@ -1,11 +1,11 @@
 import sqlite3
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from datetime import datetime
+from datetime import datetime, timedelta
 import threading
 import time
 from update_cron_job import update_cron_jobs
-
+import log_processor
 
 app = Flask(__name__)
 CORS(app)
@@ -273,6 +273,82 @@ def get_top_queries():
         return jsonify({"error": f"An unexpected error occurred: {str(e)}"}), 500
 
 
+@app.route('/query_graph', methods=['GET'])
+def query_graph():
+    # Logic to calculate counts per hour for the last 24 hours
+    now = datetime.now()
+    data = []
+
+    # Connect to the database
+    conn = sqlite3.connect('dns_log.db')
+    cursor = conn.cursor()
+
+    # Loop through the last 24 hours
+    for i in range(24):
+        hour = now - timedelta(hours=i)
+        hour_start = hour.replace(minute=0, second=0, microsecond=0).strftime("%Y-%m-%d %H:%M:%S")
+        hour_end = hour.replace(minute=59, second=59, microsecond=999999).strftime("%Y-%m-%d %H:%M:%S")
+
+        # Count blocked and forwarded queries in this hour
+        blocked_count = cursor.execute("""
+            SELECT COUNT(*) FROM dns_log
+            WHERE query_type = 'config' AND timestamp BETWEEN ? AND ?
+            """, (hour_start, hour_end)).fetchone()[0]
+
+        forwarded_count = cursor.execute("""
+            SELECT COUNT(*) FROM dns_log
+            WHERE query_type LIKE '%query%' AND timestamp BETWEEN ? AND ?
+            """, (hour_start, hour_end)).fetchone()[0]
+
+        data.append({
+            "time": hour.strftime("%H:%M"),
+            "blocked": blocked_count,
+            "allowed": forwarded_count
+        })
+    conn.close()
+
+    return jsonify(data[::-1])  # Reverse the list to make it chronological
+
+
+@app.route('/query_type_breakdown', methods=['GET'])
+def query_type_breakdown():
+    try:
+        # Connect to the database
+        conn = sqlite3.connect('dns_log.db')
+        cursor = conn.cursor()
+
+        # Calculate the time 24 hours ago
+        now = datetime.now()
+        twenty_four_hours_ago = now - timedelta(hours=24)
+
+        # Query for the count of each query type
+        cursor.execute("""
+            SELECT query_type, COUNT(*) as count
+            FROM dns_log
+            WHERE timestamp >= ? AND query_type LIKE '%query%'
+            GROUP BY query_type
+        """, (twenty_four_hours_ago.strftime('%Y-%m-%d %H:%M:%S'),))
+
+        results = cursor.fetchall()
+
+        # close the connection
+        conn.close()
+
+        query_type_breakdown = {row[0]: row[1] for row in results}
+
+        return jsonify(query_type_breakdown), 200
+
+    except sqlite3.Error as e:
+        return jsonify({"error": f"Database error: {str(e)}"}), 500
+    except Exception as e:
+        return jsonify({"error": f"An unexpected error occurred: {str(e)}"}), 500
+
+
+def start_processing_log():
+    thread = threading.Thread(target=log_processor.start_processing, daemon=True)
+    thread.start()
+
+
 def run_scheduler():
     while True:
         update_cron_jobs()
@@ -284,6 +360,7 @@ threading.Thread(target=run_scheduler, daemon=True).start()
 
 
 if __name__ == '__main__':
-    init_db()
-
-    app.run(debug=True)
+    init_db()   # blocked websites database
+    log_processor.initialize_database()  # dns_log db and processing_state db
+    start_processing_log()
+    app.run(debug=True, use_reloader=False)
