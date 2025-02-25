@@ -13,7 +13,7 @@ function CurrentlyBlocked() {
   });
 
   useEffect(() => {
-    axios.get('http://localhost:5000/current_block')
+    axios.get('http://127.0.0.1:5000/current_block')
       .then(response => {
         setBlockedWebsites(response.data);
         setLoading(false);
@@ -35,7 +35,7 @@ function CurrentlyBlocked() {
 
   // Handle the update of a blocked website
   const handleUpdate = (websiteId) => {
-    axios.put(`http://localhost:5000/current_block/${websiteId}`, formData)
+    axios.put(`http://127.0.0.1:5000/current_block/${websiteId}`, formData)
       .then(response => {
         setBlockedWebsites(prevWebsites =>
           prevWebsites.map(website =>
@@ -51,7 +51,7 @@ function CurrentlyBlocked() {
 
   // Handle the deletion of a blocked website
   const handleDelete = (websiteId) => {
-    axios.delete(`http://localhost:5000/current_block/${websiteId}`)
+    axios.delete(`http://127.0.0.1:5000/current_block/${websiteId}`)
       .then(() => {
         setBlockedWebsites(prevWebsites => 
           prevWebsites.filter(website => website.id !== websiteId)
