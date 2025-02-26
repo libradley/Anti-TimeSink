@@ -51,6 +51,7 @@ function CurrentlyBlocked() {
 
   // Handle the deletion of a blocked website
   const handleDelete = (websiteId) => {
+    console.log('Deleting website with ID:', websiteId);
     axios.delete(`http://127.0.0.1:5000/current_block/${websiteId}`)
       .then(() => {
         setBlockedWebsites(prevWebsites => 
