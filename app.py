@@ -43,10 +43,10 @@ def block_website():
         cursor = connection.cursor()
         cursor.execute('''
             INSERT INTO blocked_websites (url, start_time, end_time, selected_days)
-            VALUES (?, ?, ?, ?, ?)''', (data['url'], data['start_time'], data['end_time'], selected_days))
+            VALUES (?, ?, ?, ?)''', (data['url'], data['start_time'], data['end_time'], selected_days))
         connection.commit()
         connection.close()
-        # add_cronjob()
+        add_cronjob()
         return jsonify({"message": "Website blocked successfully"}), 201
     except sqlite3.Error as e:
         return jsonify({"error": f"Database error: {str(e)}"}), 500
@@ -63,7 +63,6 @@ def get_history():
         cursor.execute('SELECT * FROM blocked_websites ORDER BY id DESC')
         websites = cursor.fetchall()
         connection.close()
-        print('this is the ide im looking for', websites[0])
         return jsonify([{
             'id': website[0],
             'url': website[1],
@@ -108,9 +107,10 @@ def update_website(id):
     if not data.get('start_time') or not data.get('end_time') or not data.get('selected_days'):
         return jsonify({"error": "Missing required fields"}), 400
     try:
+        print('here')
         connection = sqlite3.connect('timesink.db')
         cursor = connection.cursor()
-        
+        print('this is the id im looking for', id)
         # Retrieve the URL associated with the given ID
         cursor.execute('''SELECT * FROM blocked_websites WHERE id = ?''', (id,))
         current_row = cursor.fetchone()
@@ -119,8 +119,8 @@ def update_website(id):
 
         
         # Update the entry in the database
-        cursor.execute('''UPDATE blocked_websites SET start_time = ?, end_time = ?, selected_days = ?
-                          WHERE id = ?''', (data['start_time'], data['end_time'], data['selected_days'], id))
+        cursor.execute('''UPDATE blocked_websites SET url = ?, start_time = ?, end_time = ?, selected_days = ?
+                          WHERE id = ?''', (data['url'], data['start_time'], data['end_time'], data['selected_days'], id))
         connection.commit()
         connection.close()
         
@@ -159,22 +159,6 @@ def delete_website(id):
         return jsonify({"error": f"Database error: {str(e)}"}), 500
     except Exception as e:
         return jsonify({"error": f"An unexpected error occurred: {str(e)}"}), 500
-
-
-@app.route('/reblock', methods=['POST'])
-def reblock_website():
-    """Re-block a website that has been unblocked"""
-    data = request.json
-    conn = sqlite3.connect('timesink.db')
-    cursor = conn.cursor()
-    cursor.execute('''
-        UPDATE blocked_websites
-        WHERE id = ?
-    ''', (data['id'],))
-    conn.commit()
-    conn.close()
-    return jsonify({"message": "Website re-blocked successfully"}), 200
-
 
 # New Routes for Statistics.js
 # Distinct clients on the network

@@ -7,6 +7,7 @@ function CurrentlyBlocked() {
   const [loading, setLoading] = useState(true);
   const [editWebsite, setEditWebsite] = useState(null);
   const [formData, setFormData] = useState({
+    url: '',
     start_time: '',
     end_time: '',
     selected_days: ''
@@ -63,6 +64,17 @@ function CurrentlyBlocked() {
       });
   };
 
+  // Handle the edit button click
+  const handleEditClick = (website) => {
+    setEditWebsite(website);
+    setFormData({
+      url: website.url,
+      start_time: website.start_time,
+      end_time: website.end_time,
+      selected_days: website.selected_days
+    });
+  };
+
   return (
     <div>
       <h1>List of Blocked Websites</h1>
@@ -78,7 +90,7 @@ function CurrentlyBlocked() {
               <p><strong>Selected Days:</strong> {website.selected_days}</p>
 
               {/* Update and Delete Buttons */}
-              <button onClick={() => setEditWebsite(website)}>Edit</button>
+              <button onClick={() => handleEditClick(website)}>Edit</button>
               <button onClick={() => handleDelete(website.id)}>Delete</button>
 
               {/* If the website is being edited, show the form */}
@@ -91,6 +103,15 @@ function CurrentlyBlocked() {
                       handleUpdate(website.id);
                     }}
                   >
+                    <div>
+                      <label>URL: </label>
+                      <input
+                        type="text"
+                        name="url"
+                        value={formData.url}
+                        onChange={handleInputChange}
+                      />
+                    </div>
                     <div>
                       <label>Start Time: </label>
                       <input

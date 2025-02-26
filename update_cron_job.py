@@ -2,7 +2,7 @@ import sqlite3
 import re
 import os
 import subprocess
-
+from datetime import datetime
 from crontab import CronTab
 
 
@@ -44,6 +44,19 @@ def day_to_cron(day):
     }
     return days.get(day, "*")  # Default to '*' if invalid
 
+def add_dnsmasq_address(url):
+    blocklist = "/etc/dnsmasq.blacklist"
+
+    # Escape special characters in the URL
+    escaped_url = url.replace("/", "\\/")
+
+    # Add the URL to the blocklist
+    with open(blocklist, "a") as file:
+        file.write(f"address=/{escaped_url}/0.0.0.0\n")
+    print(f"Blocking: {url}")
+
+    # Restart dnsmasq to apply changes
+    subprocess.run(["sudo", "systemctl", "restart", "dnsmasq"], check=True)
 
 def remove_dnsmasq_address(url):
     blocklist = "/etc/dnsmasq.blacklist"
@@ -65,9 +78,11 @@ def remove_dnsmasq_address(url):
     # Restart dnsmasq to apply changes
     subprocess.run(["sudo", "systemctl", "restart", "dnsmasq"], check=True)
 
-def add_cronjob():
-    print('adding cron job')
-    rows = init_db("SELECT id, url, start_time, end_time, selected_days FROM blocked_websites ORDER BY id DESC LIMIT 1")
+def add_cronjob(edit=None):
+    if edit is None:
+        rows = init_db("SELECT id, url, start_time, end_time, selected_days FROM blocked_websites ORDER BY id DESC LIMIT 1")
+    else:
+        rows = init_db(edit)
     cron, block_script, unblock_script, url, start_minute, start_hour, cron_days, end_minute, end_hour, key = format_db_to_cron('ADD', rows)
 
     cron.new(command=f"{block_script} {url}",
@@ -98,16 +113,39 @@ def delete_cron_job(job_id, url):
 
     remove_dnsmasq_address(url)
 
-def edit_cron_job(current_job, new_job):
-            old_url = current_job[1],
-            old_start_time = [2],
-            old_end_time = current_job[3],
-            old_day_selected = current_job[4],
+def edit_cron_job(old_job, new_job):
+    delete_cron_job(old_job[0], old_job[1])
 
-            new_url = new_job['url']
-            new_start_time = new_job['start_time']
-            new_end_time = new_job['end_time']
-            new_days_selected = new_job['selected_days']
+    new_url = new_job['url']
+    new_start_time = new_job['start_time']
+    new_end_time = new_job['end_time']
+
+    # Convert new start and end times to 24-hour format
+    new_start_hour, new_start_minute = convert_to_24hr(new_start_time)
+    new_end_hour, new_end_minute = convert_to_24hr(new_end_time)
+
+    # Get the current time
+    now = datetime.now()
+    current_hour = now.hour
+    current_minute = now.minute
+    current_time = current_hour * 60 + current_minute
+
+    # Check if the current time falls within the new start and end times
+    new_start_time = new_start_hour * 60 + new_start_minute
+    new_end_time = new_end_hour * 60 + new_end_minute
+    new_job_running = new_start_time <= current_time <= new_end_time
+
+
+    add_cronjob(f"SELECT id, url, start_time, end_time, selected_days FROM blocked_websites WHERE url = '{new_url}'")
+    
+    # Check if we need to add or remove the website from dnsmasq
+    
+    if new_job_running:
+        # Scenario 1: New job running
+        add_dnsmasq_address(new_url)
+    else:
+        # Scenario 2 : New job not running 
+        remove_dnsmasq_address(new_url)
 
 
 # Function to update the crontab jobs
