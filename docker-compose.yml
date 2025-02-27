@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile.frontend
+    ports:
+      - "3000:80"  # Expose Nginx on port 3000 for the frontend
+    networks:
+      - app-network
+    depends_on:
+      - backend
+      - dnsmasq
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: backend/Dockerfile.backend
+    ports:
+      - "5000:5000"  # Expose backend API on port 5000
+    networks:
+      - app-network
+    depends_on:
+      - dnsmasq
+
+  dnsmasq:
+    build:
+      context: .
+      dockerfile: dnsmasq/Dockerfile.dnsmasq
+    networks:
+      - app-network
+    expose:
+      - "53"  # Expose DNS port
+
+networks:
+  app-network:
+    driver: bridge

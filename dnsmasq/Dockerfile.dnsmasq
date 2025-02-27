@@ -1,0 +1,14 @@
+FROM debian:bullseye-slim
+
+# Install DNSMasq
+RUN apt-get update && apt-get install -y dnsmasq
+
+# Copy custom DNSMasq configuration (you can customize this as needed)
+COPY ./dnsmasq/dnsmasq.conf /etc/dnsmasq.conf
+
+# Expose DNS port (53)
+EXPOSE 53/udp
+EXPOSE 53/tcp
+
+# Run DNSMasq
+CMD ["dnsmasq", "-k"]
