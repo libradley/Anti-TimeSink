@@ -40,23 +40,23 @@ main > div {
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
-/* ----------History page----------- */
+/* ----------currently_blocked page----------- */
 /* Container for the page */
-.history-container {
+.currently_blocked-container {
   padding: 20px;
   max-width: 1000px;
   margin: auto;
 }
 
 /* Title styling */
-.history-title {
+.currently_blocked-title {
   font-size: 28px;
   text-align: center;
   margin-bottom: 20px;
 }
 
 /* Dynamic table wrapper */
-.history-table-wrapper {
+.currently_blocked-table-wrapper {
   overflow-y: auto;
   border: 2px solid #ddd;
   border-radius: 8px;
@@ -66,14 +66,14 @@ main > div {
 }
 
 /* Table styles */
-.history-table {
+.currently_blocked-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 18px;
 }
 
 /* Table header styles */
-.history-table thead {
+.currently_blocked-table thead {
   position: sticky;
   top: 0;
   background: #f4f4f4;
@@ -82,7 +82,7 @@ main > div {
 }
 
 /* Center table headers */
-.history-table th {
+.currently_blocked-table th {
   padding: 15px;
   border: 2px solid #ddd;
   text-align: center;
@@ -90,7 +90,7 @@ main > div {
 }
 
 /* Table row and cell styles */
-.history-table td {
+.currently_blocked-table td {
   padding: 15px;
   border: 2px solid #ddd;
   text-align: center;
@@ -184,4 +184,36 @@ input[type="text"] {
 
 .block-button:hover {
   background-color: #0056b3;
+}
+
+
+.table-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 5px;
+  margin: 0;
+}
+
+.days-container {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.day-option {
+  margin-right: 5px;
+}
+
+.currently_blocked-table td {
+  vertical-align: middle;
+  padding: 5px;
+}
+
+.save-button, .cancel-button {
+  padding: 5px 10px;
+  margin: 2px;
+}
+
+.edit-button, .delete-button {
+  padding: 5px 10px;
+  margin: 2px;
 }

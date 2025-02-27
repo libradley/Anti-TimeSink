@@ -4,7 +4,8 @@ import os
 import subprocess
 from datetime import datetime
 from crontab import CronTab
-
+from block_website import block_url
+from unblock_website import remove_url
 
 # Initialize the SQLite database connection
 def init_db(query):
@@ -40,43 +41,10 @@ def convert_to_24hr(time_str):
 def day_to_cron(day):
     days = {
         "Mon": 1, "Tue": 2, "Wed": 3, "Thu": 4,
-        "Fri": 5, "Sat": 6, "Sun": 7
+        "Fri": 5, "Sat": 6, "Sun": 0
     }
     return days.get(day, "*")  # Default to '*' if invalid
 
-def add_dnsmasq_address(url):
-    blocklist = "/etc/dnsmasq.blacklist"
-
-    # Escape special characters in the URL
-    escaped_url = url.replace("/", "\\/")
-
-    # Add the URL to the blocklist
-    with open(blocklist, "a") as file:
-        file.write(f"address=/{escaped_url}/0.0.0.0\n")
-    print(f"Blocking: {url}")
-
-    # Restart dnsmasq to apply changes
-    subprocess.run(["sudo", "systemctl", "restart", "dnsmasq"], check=True)
-
-def remove_dnsmasq_address(url):
-    blocklist = "/etc/dnsmasq.blacklist"
-
-    # Escape special characters in the URL
-    escaped_url = url.replace("/", "\\/")
-
-    # Read the blocklist file
-    with open(blocklist, "r") as file:
-        lines = file.readlines()
-
-    # Remove the URL from the blocklist
-    with open(blocklist, "w") as file:
-        for line in lines:
-            if f"address=/{escaped_url}/0.0.0.0" not in line:
-                file.write(line)
-    print(f"Unblocking: {url}")
-
-    # Restart dnsmasq to apply changes
-    subprocess.run(["sudo", "systemctl", "restart", "dnsmasq"], check=True)
 
 def add_cronjob(edit=None):
     if edit is None:
@@ -91,6 +59,7 @@ def add_cronjob(edit=None):
              comment=f"{key}").setall(f"{end_minute} {end_hour} * * {cron_days}")
     cron.write()
     print("Added cron job for:", url)
+
 
 def delete_cron_job(job_id, url):
     
@@ -111,7 +80,7 @@ def delete_cron_job(job_id, url):
     # Write the updated cron jobs back to the crontab
     cron.write()
 
-    remove_dnsmasq_address(url)
+    remove_url(url)
 
 def edit_cron_job(old_job, new_job):
     delete_cron_job(old_job[0], old_job[1])
@@ -142,10 +111,10 @@ def edit_cron_job(old_job, new_job):
     
     if new_job_running:
         # Scenario 1: New job running
-        add_dnsmasq_address(new_url)
+        block_url(new_url)
     else:
         # Scenario 2 : New job not running 
-        remove_dnsmasq_address(new_url)
+        remove_url(new_url)
 
 
 # Function to update the crontab jobs
@@ -159,8 +128,8 @@ def format_db_to_cron(type, rows):
     cron = CronTab(user=True)
 
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    block_script = os.path.join(script_dir, "block_website.sh")
-    unblock_script = os.path.join(script_dir, "unblock_website.sh")
+    block_script = os.path.join(script_dir, "block_website.py")
+    unblock_script = os.path.join(script_dir, "unblock_website.py")
 
     for row in rows:
         id, url, start_time, end_time, selected_days = row
