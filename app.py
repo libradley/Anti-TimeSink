@@ -156,6 +156,7 @@ def delete_website(id):
     except Exception as e:
         return jsonify({"error": f"An unexpected error occurred: {str(e)}"}), 500
 
+
 # New Routes for Statistics.js
 # Distinct clients on the network
 @app.route('/clients', methods=['GET'])

@@ -50,7 +50,7 @@ def add_cronjob(edit=None):
     else:
         rows = init_db(edit)
     cron, block_script, unblock_script, url, start_minute, start_hour, cron_days, \
-    end_minute, end_hour, key = format_db_to_cron('ADD', rows)
+        end_minute, end_hour, key = format_db_to_cron('ADD', rows)
 
     cron.new(command=f"{block_script} {url}",
              comment=f"{key}").setall(f"{start_minute} {start_hour} * * {cron_days}")
@@ -109,7 +109,7 @@ def edit_cron_job(old_job, new_job):
         # Scenario 1: New job running
         block_url(new_url)
     else:
-        # Scenario 2 : New job not running 
+        # Scenario 2 : New job not running
         remove_url(new_url)
 
 
@@ -138,4 +138,4 @@ def format_db_to_cron(type, rows):
 
     if type == 'ADD':
         return cron, block_script, unblock_script, url, start_minute, start_hour, \
-        cron_days, end_minute, end_hour, id
+            cron_days, end_minute, end_hour, id
