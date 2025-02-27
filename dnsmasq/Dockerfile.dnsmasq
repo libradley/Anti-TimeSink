@@ -1,14 +1,42 @@
-FROM debian:bullseye-slim
+# Use an official Debian-based image as the base
+FROM debian:latest
 
-# Install DNSMasq
-RUN apt-get update && apt-get install -y dnsmasq
+# Set environment variables (optional, you can modify them as needed)
+ENV DEBIAN_FRONTEND=noninteractive
 
-# Copy custom DNSMasq configuration (you can customize this as needed)
-COPY ./dnsmasq/dnsmasq.conf /etc/dnsmasq.conf
+# Update and install necessary packages
+RUN apt update && \
+    apt install -y \
+    dnsmasq \
+    python3-venv \
+    npm \
+    sed \
+    && rm -rf /var/lib/apt/lists/*
 
-# Expose DNS port (53)
+# Create necessary directories and files
+RUN touch /etc/dns.blacklist
+
+# Copy scripts and blacklist into the container
+COPY ./dnsmasq/block_website.sh /dnsmasq/block_website.sh
+COPY ./dnsmasq/unblock_website.sh /dnsmasq/unblock_website.sh
+COPY ./dnsmasq/dns.blacklist /dnsmasq/dns.blacklist
+
+# Set permissions for files (optional, ensure scripts can execute and the blacklist is writable)
+RUN chmod a+x /dnsmasq/block_website.sh && \
+    chmod a+x /dnsmasq/unblock_website.sh && \
+    chmod 666 /etc/dns.blacklist
+
+# Ensure no password is required for running sudo commands (if applicable, modify this)
+RUN echo "ALL ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+
+# Run commands to remove Windows-style line endings (if the scripts were edited on Windows)
+RUN sed -i 's/\r$//' /dnsmasq/block_website.sh && \
+    sed -i 's/\r$//' /dnsmasq/unblock_website.sh
+
+# Expose the DNS port (53) for dnsmasq
 EXPOSE 53/udp
 EXPOSE 53/tcp
 
-# Run DNSMasq
+# Start dnsmasq (can be customized to run your specific commands or scripts)
 CMD ["dnsmasq", "-k"]
+

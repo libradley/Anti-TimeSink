@@ -1,7 +1,7 @@
 #!/bin/bash
 
 URL=$1
-BLOCKLIST="/home/samuelparkman/anti_timesink/dnsmasq.blacklist"
+BLOCKLIST="/dnsmasq/dns.blacklist"
 
 URL=$(echo $URL | sed 's/\//\\\//g')
 

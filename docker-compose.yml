@@ -1,38 +1,40 @@
 version: '3.8'
 
 services:
+  # Frontend service (built with Nginx serving static files)
   frontend:
-    build:
-      context: .
-      dockerfile: frontend/Dockerfile.frontend
+    image: ghcr.io/libradley/anti-timesink/frontend:latest
+    container_name: frontend
     ports:
-      - "3000:80"  # Expose Nginx on port 3000 for the frontend
+      - "80:80"  # Expose frontend on port 80 (accessible externally)
     networks:
-      - app-network
+      - frontend-backend-net
     depends_on:
-      - backend
-      - dnsmasq
+      - backend  # Make sure backend is up before starting frontend
 
+  # Backend service (Python app, could be Flask/Django, etc.)
   backend:
-    build:
-      context: ./backend
-      dockerfile: backend/Dockerfile.backend
+    image: ghcr.io/libradley/anti-timesink/backend:latest
+    container_name: backend
     ports:
-      - "5000:5000"  # Expose backend API on port 5000
+      - "5000:5000"  # Expose backend on port 5000 (accessible externally)
     networks:
-      - app-network
-    depends_on:
-      - dnsmasq
+      - frontend-backend-net
+    environment:
+      - BACKEND_URL=http://backend:5000  # Reference the backend service by name
 
+  # Dnsmasq service (providing DNS and blocking services)
   dnsmasq:
-    build:
-      context: .
-      dockerfile: dnsmasq/Dockerfile.dnsmasq
+    image: ghcr.io/libradley/anti-timesink/dnsmasq:latest
+    container_name: dnsmasq
+    ports:
+      - "53:53/udp"   # Expose DNS port
+      - "53:53/tcp"   # Expose DNS port
     networks:
-      - app-network
-    expose:
-      - "53"  # Expose DNS port
+      - frontend-backend-net
+    volumes:
+      - ./dnsmasq/config:/etc/dnsmasq.conf  # Optional: if you have a config file for dnsmasq
 
 networks:
-  app-network:
-    driver: bridge
+  frontend-backend-net:
+    driver: bridge  # This allows communication between containers in the same network
