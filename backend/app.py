@@ -32,6 +32,9 @@ def init_db():
         raise
 
 
+init_db()
+
+
 @app.route('/block', methods=['POST'])
 def block_website():
     """Successfully added blocked website"""

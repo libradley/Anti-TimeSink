@@ -32,8 +32,7 @@ services:
       - "53:53/tcp"   # Expose DNS port
     networks:
       - frontend-backend-net
-    volumes:
-      - ./dnsmasq/config:/etc/dnsmasq.conf  # Optional: if you have a config file for dnsmasq
+
 
 networks:
   frontend-backend-net:

@@ -13,10 +13,10 @@ RUN apt-get update && apt-get install -y \
 RUN pip install -r requirements.txt
 
 # Copy the backend code to the container
-COPY . .
+COPY ./backend /backend
 
 # Expose the port that Gunicorn will run on
-EXPOSE 8000
+EXPOSE 5000
 
 # Use Gunicorn to serve the Flask or Django app
-CMD ["gunicorn", "--workers", "3", "--bind", "0.0.0.0:8000", "app:app"]
+CMD ["gunicorn", "--workers", "3", "--bind", "0.0.0.0:5000", "app:app"]
