@@ -3,7 +3,6 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from datetime import datetime, timedelta
 import threading
-import time
 from update_cron_job import add_cronjob, delete_cron_job, edit_cron_job
 import log_processor
 
@@ -44,7 +43,7 @@ def block_website():
                           VALUES (?, ?, ?, ?)''', (data['url'], data['start_time'], data['end_time'], selected_days))
         connection.commit()
         connection.close()
-        # add_cronjob()
+        add_cronjob()
         return jsonify({"message": "Website blocked successfully"}), 201
     except sqlite3.Error as e:
         print(f"Database error: {e}")
@@ -99,6 +98,7 @@ def get_website():
     except Exception as e:
         return jsonify({"error": f"An unexpected error occurred: {str(e)}"}), 500
 
+
 @app.route('/current_block/<int:id>', methods=['PUT'])
 def update_website(id):
     """Update the details of a blocked website"""
@@ -114,14 +114,13 @@ def update_website(id):
         if current_row is None:
             return jsonify({"error": "Website not found"}), 404
 
-        
         # Update the entry in the database
         cursor.execute('''UPDATE blocked_websites SET url = ?, start_time = ?, end_time = ?, selected_days = ?
                           WHERE id = ?''', (data['url'], data['start_time'], data['end_time'], data['selected_days'], id))
         connection.commit()
         connection.close()
-        
-        # edit_cron_job(current_row, data)
+
+        edit_cron_job(current_row, data)
         return jsonify({"message": "Website updated successfully"}), 200
     except sqlite3.Error as e:
         return jsonify({"error": f"Database error: {str(e)}"}), 500
@@ -135,22 +134,22 @@ def delete_website(id):
     try:
         connection = sqlite3.connect('timesink.db')
         cursor = connection.cursor()
-        
+
         # Retrieve the URL associated with the given ID
         cursor.execute('''SELECT url FROM blocked_websites WHERE id = ?''', (id,))
         row = cursor.fetchone()
         if row is None:
             return jsonify({"error": "Website not found"}), 404
         url = row[0]
-        
+
         # Delete the entry from the database
         cursor.execute('''DELETE FROM blocked_websites WHERE id = ?''', (id,))
         connection.commit()
         connection.close()
-        
+
         # Call delete_cron_job with the ID and unblock the website
-        # delete_cron_job(id, url)
-        
+        delete_cron_job(id, url)
+
         return jsonify({"message": "Website deleted successfully"}), 200
     except sqlite3.Error as e:
         return jsonify({"error": f"Database error: {str(e)}"}), 500

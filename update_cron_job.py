@@ -1,11 +1,11 @@
 import sqlite3
 import re
 import os
-import subprocess
 from datetime import datetime
 from crontab import CronTab
 from block_website import block_url
 from unblock_website import remove_url
+
 
 # Initialize the SQLite database connection
 def init_db(query):
@@ -14,9 +14,7 @@ def init_db(query):
     cursor.execute(query)
     rows = cursor.fetchall()
     conn.close()
-
     return rows
-
 
 
 # Convert 12-hour AM/PM time to 24-hour format
@@ -51,7 +49,8 @@ def add_cronjob(edit=None):
         rows = init_db("SELECT id, url, start_time, end_time, selected_days FROM blocked_websites ORDER BY id DESC LIMIT 1")
     else:
         rows = init_db(edit)
-    cron, block_script, unblock_script, url, start_minute, start_hour, cron_days, end_minute, end_hour, key = format_db_to_cron('ADD', rows)
+    cron, block_script, unblock_script, url, start_minute, start_hour, cron_days, \
+    end_minute, end_hour, key = format_db_to_cron('ADD', rows)
 
     cron.new(command=f"{block_script} {url}",
              comment=f"{key}").setall(f"{start_minute} {start_hour} * * {cron_days}")
@@ -62,10 +61,9 @@ def add_cronjob(edit=None):
 
 
 def delete_cron_job(job_id, url):
-    
     # Access the user's crontab
     cron = CronTab(user=True)
-    
+
     # Find and remove the job with the specified ID in the comments
     job_found = False
     for job in cron:
@@ -73,14 +71,14 @@ def delete_cron_job(job_id, url):
             cron.remove(job)
             job_found = True
             print(f'Removed cron job with ID: {job_id}')
-    
+
     if not job_found:
         print(f'No cron job found with ID: {job_id}')
-    
+
     # Write the updated cron jobs back to the crontab
     cron.write()
-
     remove_url(url)
+
 
 def edit_cron_job(old_job, new_job):
     delete_cron_job(old_job[0], old_job[1])
@@ -104,11 +102,9 @@ def edit_cron_job(old_job, new_job):
     new_end_time = new_end_hour * 60 + new_end_minute
     new_job_running = new_start_time <= current_time <= new_end_time
 
-
     add_cronjob(f"SELECT id, url, start_time, end_time, selected_days FROM blocked_websites WHERE url = '{new_url}'")
-    
+
     # Check if we need to add or remove the website from dnsmasq
-    
     if new_job_running:
         # Scenario 1: New job running
         block_url(new_url)
@@ -141,4 +137,5 @@ def format_db_to_cron(type, rows):
         end_hour, end_minute = convert_to_24hr(end_time)
 
     if type == 'ADD':
-        return cron, block_script, unblock_script, url, start_minute, start_hour, cron_days, end_minute, end_hour, id
+        return cron, block_script, unblock_script, url, start_minute, start_hour, \
+        cron_days, end_minute, end_hour, id

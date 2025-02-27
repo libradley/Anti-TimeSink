@@ -1,6 +1,7 @@
 import subprocess
 import sys
 
+
 def block_url(url):
     blocklist = "/etc/dnsmasq.blacklist"
 
@@ -22,6 +23,7 @@ def block_url(url):
 
     # Restart dnsmasq to apply changes
     subprocess.run(["sudo", "systemctl", "restart", "dnsmasq"], check=True)
+
 
 if __name__ == "__main__":
     url = sys.argv[1]
