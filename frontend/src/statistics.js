@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { BarChart, Bar, XAxis, YAxis, PieChart, Pie, Cell, Tooltip, CartesianGrid, Legend } from 'recharts';
 
 const StatisticsPage = () => {
@@ -35,6 +35,7 @@ const StatisticsPage = () => {
     fetchClients();
   }, []);
 
+  //////////////////////////
   // Graphical Data pie chart
   useEffect(() => {
     const fetchQueryTypeData = async () => {
@@ -66,6 +67,7 @@ const StatisticsPage = () => {
     return () => clearInterval(interval);
   }, []); // Empty dependency array to only set up interval once
 
+  //////////////////////////
   // Graphical Data bar chart
   useEffect(() => {
     const fetchGraphData = async () => {
@@ -90,6 +92,7 @@ const StatisticsPage = () => {
     return () => clearInterval(interval);
   }, []);
 
+  // QUERY GRAPH
   const QueryGraph = ({ data }) => {
     return (
       // Bar chart for last 24 hours queries allowed and blocked
@@ -137,7 +140,7 @@ const StatisticsPage = () => {
   }
 
   // This function handles the queries listed reverse chronological order to selected date.
-  const fetchQueriesByDate = async () => {
+  const fetchQueriesByDate = useCallback(async () => {
     try {
       // Find offset and send request to API endpoint
       const offset = (current_page - 1) * queries_per_page;
@@ -153,7 +156,14 @@ const StatisticsPage = () => {
     } catch (error) {
       console.error("Error fetching queries by date:", error);
     }
-  };
+  }, [current_page, queries_per_page, host_url, query_date]);
+
+  // useEffect to re-fetch queries when current_page changes
+  useEffect(() => {
+    if (selected_form === "queriesByDate" && query_date) {
+      fetchQueriesByDate();
+    }
+  }, [current_page, selected_form, fetchQueriesByDate, query_date]);
 
   // This function handles the top queries by client.
   const fetchTopQueriesByClient = async () => {
