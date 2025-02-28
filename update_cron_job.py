@@ -45,6 +45,7 @@ def day_to_cron(day):
 
 
 def add_cronjob(edit=None):
+    python = "/usr/bin/python3"
     if edit is None:
         rows = init_db("SELECT id, url, start_time, end_time, selected_days FROM blocked_websites ORDER BY id DESC LIMIT 1")
     else:
@@ -52,9 +53,9 @@ def add_cronjob(edit=None):
     cron, block_script, unblock_script, url, start_minute, start_hour, cron_days, \
         end_minute, end_hour, key = format_db_to_cron('ADD', rows)
 
-    cron.new(command=f"{block_script} {url}",
+    cron.new(command=f"{python} {block_script} {url}",
              comment=f"{key}").setall(f"{start_minute} {start_hour} * * {cron_days}")
-    cron.new(command=f"{unblock_script} {url}",
+    cron.new(command=f"{python} {unblock_script} {url}",
              comment=f"{key}").setall(f"{end_minute} {end_hour} * * {cron_days}")
     cron.write()
     print("Added cron job for:", url)
