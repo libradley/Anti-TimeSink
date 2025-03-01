@@ -97,7 +97,7 @@ def edit_cron_job(old_job, new_job):
     new_start_hour, new_start_minute = convert_to_24hr(new_start_time)
     new_end_hour, new_end_minute = convert_to_24hr(new_end_time)
 
-    new_job_running = should_job_run(new_start_minute, new_start_hour, new_end_minute, 
+    new_job_running = should_job_run(new_start_minute, new_start_hour, new_end_minute,
                                      new_end_hour, new_selected_days, action='edit')
 
     add_cronjob(f"SELECT id, url, start_time, end_time, selected_days FROM blocked_websites WHERE url = '{new_url}'")
