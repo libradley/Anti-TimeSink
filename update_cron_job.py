@@ -65,6 +65,7 @@ def add_cronjob(edit=None):
     if running:
         block_url(url)
 
+
 def delete_cron_job(job_id, url):
     # Access the user's crontab
     cron = CronTab(user=True)
@@ -96,7 +97,8 @@ def edit_cron_job(old_job, new_job):
     new_start_hour, new_start_minute = convert_to_24hr(new_start_time)
     new_end_hour, new_end_minute = convert_to_24hr(new_end_time)
 
-    new_job_running = should_job_run(new_start_minute, new_start_hour, new_end_minute, new_end_hour, new_selected_days, action='edit')
+    new_job_running = should_job_run(new_start_minute, new_start_hour, new_end_minute, 
+                                     new_end_hour, new_selected_days, action='edit')
 
     add_cronjob(f"SELECT id, url, start_time, end_time, selected_days FROM blocked_websites WHERE url = '{new_url}'")
 
@@ -108,9 +110,10 @@ def edit_cron_job(old_job, new_job):
         # Scenario 2 : New job not running
         remove_url(new_url)
 
+
 def should_job_run(new_start_minute, new_start_hour, new_end_minute, new_end_hour, selected_days, action=None):
 
-    #Convert mon, tue to 1, 2, ...
+    # Convert mon, tue to 1, 2, ...
     if action:
         days = selected_days.split(",")
         cron_days = ",".join(str(day_to_cron(day)) for day in days)
@@ -130,7 +133,7 @@ def should_job_run(new_start_minute, new_start_hour, new_end_minute, new_end_hou
 
     # Returns day of the week as an integer, where Monday is 0 and Sunday is 6
     current_day_index = datetime.now().weekday()
-    
+
     # Update index to match cronjob format where sunday is 0 and saturday is 6
     current_day_index += 1
 
@@ -143,6 +146,7 @@ def should_job_run(new_start_minute, new_start_hour, new_end_minute, new_end_hou
     else:
         print('Job does not need to run')
         return False
+
 
 # Function to update the crontab jobs
 def format_db_to_cron(type, rows):
