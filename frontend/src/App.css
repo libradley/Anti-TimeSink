@@ -42,21 +42,21 @@ main > div {
 
 /* ----------History page----------- */
 /* Container for the page */
-.history-container {
+.currently_blocked-container, .stats-container {
   padding: 20px;
   max-width: 1000px;
   margin: auto;
 }
 
 /* Title styling */
-.history-title {
+.currently_blocked-title, .stats-title {
   font-size: 28px;
   text-align: center;
   margin-bottom: 20px;
 }
 
 /* Dynamic table wrapper */
-.history-table-wrapper {
+.currently_blocked-table-wrapper, .stats-table-wrapper {
   overflow-y: auto;
   border: 2px solid #ddd;
   border-radius: 8px;
@@ -66,14 +66,14 @@ main > div {
 }
 
 /* Table styles */
-.history-table {
+.currently_blocked-table, .stats-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 18px;
 }
 
 /* Table header styles */
-.history-table thead {
+.currently_blocked-table, .stats-table thead {
   position: sticky;
   top: 0;
   background: #f4f4f4;
@@ -82,7 +82,7 @@ main > div {
 }
 
 /* Center table headers */
-.history-table th {
+.currently_blocked-table, .stats-table th {
   padding: 15px;
   border: 2px solid #ddd;
   text-align: center;
@@ -90,7 +90,7 @@ main > div {
 }
 
 /* Table row and cell styles */
-.history-table td {
+.currently_blocked-table, .stats-table td {
   padding: 15px;
   border: 2px solid #ddd;
   text-align: center;
