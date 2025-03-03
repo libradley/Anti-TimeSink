@@ -194,66 +194,74 @@ const StatisticsPage = () => {
     }
   };
 
+  // This function handles the pagination of buttons from queries per page request
   const renderPagination = () => {
-    const maxPagesToShow = 5; // Limit the number of buttons shown
+    const maxPagesToShow = 3;
     let startPage = Math.max(1, current_page - Math.floor(maxPagesToShow / 2));
     let endPage = Math.min(total_pages, startPage + maxPagesToShow - 1);
 
     if (endPage - startPage < maxPagesToShow - 1) {
-      startPage = Math.max(1, endPage - maxPagesToShow + 1);
+        startPage = Math.max(1, endPage - maxPagesToShow + 1);
     }
 
-    const pages = new Set(); // Use a Set to prevent duplicate values
+    const pages = []; // Use an array instead of Set
 
-    pages.add(1); // Always include first page
-    if (startPage > 2) pages.add("..."); // Ellipsis before main range
+    // helper function to get two ellipsis in and not repeat numbers
+    const addPage = (page) => {
+        if (!pages.includes(page) || page === "...") {
+            pages.push(page);
+        }
+    };
+
+    addPage(1); // Always include first page
+    if (startPage > 2) addPage("..."); // Ellipsis before main range
 
     for (let i = startPage; i <= endPage; i++) {
-      pages.add(i);
+        addPage(i);
     }
 
-    if (endPage < total_pages - 1) pages.add("..."); // Ellipsis after main range
-    pages.add(total_pages); // Always include last page
+    if (endPage < total_pages - 1) addPage("..."); // Ellipsis after main range
+    addPage(total_pages); // Always include last page
 
     return (
-      <div className="pagination">
-        <button
-          disabled={current_page === 1}
-          onClick={() => {
-            setCurrentPage(current_page - 1);
-            fetchQueriesByDate();
-          }}
-        >
-          Prev
-        </button>
-
-        {[...pages].map((page, index) =>
-          page === "..." ? (
-            <span key={`ellipsis-${index}`} className="ellipsis">...</span>
-          ) : (
+        <div className="pagination">
             <button
-              key={page}
-              onClick={() => {
-                setCurrentPage(page);
-                fetchQueriesByDate();
-              }}
-              className={page === current_page ? "active" : ""}
+                disabled={current_page === 1}
+                onClick={() => {
+                    setCurrentPage(current_page - 1);
+                    fetchQueriesByDate();
+                }}
             >
-              {page}
+                Prev
             </button>
-          )
-        )}
 
-        <button
-          disabled={current_page === total_pages}
-          onClick={() => {
-            setCurrentPage(current_page + 1);
-            fetchQueriesByDate();
-          }}
-        >
-          Next
-        </button>
-      </div>
+            {pages.map((page, index) =>
+                page === "..." ? (
+                    <span key={`ellipsis-${index}`} className="ellipsis">...</span>
+                ) : (
+                    <button
+                        key={page}
+                        onClick={() => {
+                            setCurrentPage(page);
+                            fetchQueriesByDate();
+                        }}
+                        className={page === current_page ? "active" : ""}
+                    >
+                        {page}
+                    </button>
+                )
+            )}
+
+            <button
+                disabled={current_page === total_pages}
+                onClick={() => {
+                    setCurrentPage(current_page + 1);
+                    fetchQueriesByDate();
+                }}
+            >
+                Next
+            </button>
+        </div>
     );
   };
 
@@ -318,7 +326,6 @@ const StatisticsPage = () => {
               value={query_date}
               onChange={(e) => setQueryDate(e.target.value)}
               required
-              className="table-input"
             />
             </label>
           </p>
