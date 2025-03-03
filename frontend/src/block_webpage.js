@@ -3,8 +3,12 @@ import './App.css'; // Import external CSS file
 
 const BlockWebpage = () => {
   const [url, setUrl] = useState('');
-  const [start_time, setStartTime] = useState('');
-  const [end_time, setEndTime] = useState('');
+  const [startHour, setStartHour] = useState('12');
+  const [startMinute, setStartMinute] = useState('00');
+  const [startPeriod, setStartPeriod] = useState('AM');
+  const [endHour, setEndHour] = useState('12');
+  const [endMinute, setEndMinute] = useState('00');
+  const [endPeriod, setEndPeriod] = useState('AM');
   const [selected_days, setSelectedDays] = useState({
     Mon: false,
     Tue: false,
@@ -15,9 +19,6 @@ const BlockWebpage = () => {
     Sun: false,
   });
 
-  const [startPeriod, setStartPeriod] = useState('AM');
-  const [endPeriod, setEndPeriod] = useState('AM');
-
   const handleCheckboxChange = (day) => {
     setSelectedDays((prevState) => ({
       ...prevState,
@@ -25,32 +26,60 @@ const BlockWebpage = () => {
     }));
   };
 
-  const handleSubmit = async () => {
-    const timePattern = /^([01]?[0-9]|1[0-2]):([0-5]?[0-9])$/;
+  const convertTo24Hour = (hour, minute, period) => {
+    let hr = parseInt(hour);
+    if (period === 'PM' && hr !== 12) {
+      hr += 12;
+    } else if (period === 'AM' && hr === 12) {
+      hr = 0;
+    }
+    return `${String(hr).padStart(2, '0')}:${minute}`;
+  };
 
-    if (!timePattern.test(start_time) || !timePattern.test(end_time)) {
-      alert('Please enter time in HH:MM format');
+  const handleSubmit = async () => {
+    const startTime24 = convertTo24Hour(startHour, startMinute, startPeriod);
+    const endTime24 = convertTo24Hour(endHour, endMinute, endPeriod);
+  
+    if (startTime24 >= endTime24) {
+      alert('Start time must be before end time.');
       return;
     }
-
+  
     const data = {
       url,
-      start_time: `${start_time} ${startPeriod}`,
-      end_time: `${end_time} ${endPeriod}`,
-      selected_days,
+      start_time: `${startHour}:${startMinute} ${startPeriod}`,
+      end_time: `${endHour}:${endMinute} ${endPeriod}`,
+      selected_days: selected_days,  // Send selected_days as a dictionary
     };
-
+  
     try {
-      const response = await fetch('http://127.0.0.1:5000/block', {
+      const response = await fetch('http://localhost:5000/block', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(data),
       });
-
+  
       if (response.ok) {
         alert('Website blocked successfully');
+        // Reset form fields to initial values
+        setUrl('');
+        setStartHour('12');
+        setStartMinute('00');
+        setStartPeriod('AM');
+        setEndHour('12');
+        setEndMinute('00');
+        setEndPeriod('AM');
+        setSelectedDays({
+          Mon: false,
+          Tue: false,
+          Wed: false,
+          Thu: false,
+          Fri: false,
+          Sat: false,
+          Sun: false,
+        });
       } else {
         alert('Failed to block website');
       }
@@ -77,13 +106,21 @@ const BlockWebpage = () => {
       <div className="input-group">
         <label htmlFor="start_time">Start Time:</label>
         <div className="time-selector">
-          <input
-            type="text"
-            id="start_time"
-            value={start_time}
-            onChange={(e) => setStartTime(e.target.value)}
-            placeholder="HH:MM"
-          />
+          <select id="startHour" value={startHour} onChange={(e) => setStartHour(e.target.value)}>
+            {Array.from({ length: 12 }, (_, i) => (
+              <option key={i + 1} value={String(i + 1).padStart(2, '0')}>
+                {String(i + 1).padStart(2, '0')}
+              </option>
+            ))}
+          </select>
+          :
+          <select id="startMinute" value={startMinute} onChange={(e) => setStartMinute(e.target.value)}>
+            {Array.from({ length: 60 }, (_, i) => (
+              <option key={i} value={String(i).padStart(2, '0')}>
+                {String(i).padStart(2, '0')}
+              </option>
+            ))}
+          </select>
           <select id="startPeriod" value={startPeriod} onChange={(e) => setStartPeriod(e.target.value)}>
             <option value="AM">AM</option>
             <option value="PM">PM</option>
@@ -94,13 +131,21 @@ const BlockWebpage = () => {
       <div className="input-group">
         <label htmlFor="end_time">End Time:</label>
         <div className="time-selector">
-          <input
-            type="end_time"
-            id="end_time"
-            value={end_time}
-            onChange={(e) => setEndTime(e.target.value)}
-            placeholder="HH:MM"
-          />
+          <select id="endHour" value={endHour} onChange={(e) => setEndHour(e.target.value)}>
+            {Array.from({ length: 12 }, (_, i) => (
+              <option key={i + 1} value={String(i + 1).padStart(2, '0')}>
+                {String(i + 1).padStart(2, '0')}
+              </option>
+            ))}
+          </select>
+          :
+          <select id="endMinute" value={endMinute} onChange={(e) => setEndMinute(e.target.value)}>
+            {Array.from({ length: 60 }, (_, i) => (
+              <option key={i} value={String(i).padStart(2, '0')}>
+                {String(i).padStart(2, '0')}
+              </option>
+            ))}
+          </select>
           <select id="endPeriod" value={endPeriod} onChange={(e) => setEndPeriod(e.target.value)}>
             <option value="AM">AM</option>
             <option value="PM">PM</option>

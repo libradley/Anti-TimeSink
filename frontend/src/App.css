@@ -40,7 +40,7 @@ main > div {
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
-/* ----------History page----------- */
+/* ----------currently_blocked page----------- */
 /* Container for the page */
 .currently_blocked-container, .stats-container {
   padding: 20px;
@@ -184,4 +184,36 @@ input[type="text"] {
 
 .block-button:hover {
   background-color: #0056b3;
+}
+
+
+.table-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 5px;
+  margin: 0;
+}
+
+.days-container {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.day-option {
+  margin-right: 5px;
+}
+
+.currently_blocked-table td {
+  vertical-align: middle;
+  padding: 5px;
+}
+
+.save-button, .cancel-button {
+  padding: 5px 10px;
+  margin: 2px;
+}
+
+.edit-button, .delete-button {
+  padding: 5px 10px;
+  margin: 2px;
 }

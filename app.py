@@ -3,6 +3,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from datetime import datetime, timedelta
 import threading
+from update_cron_job import add_cronjob, delete_cron_job, edit_cron_job
 import log_processor
 
 app = Flask(__name__)
@@ -10,6 +11,7 @@ CORS(app)
 
 # In-memory data store for blocked websites
 blocked_websites = []
+
 
 def init_db():
     try:
@@ -20,8 +22,7 @@ def init_db():
             url TEXT NOT NULL,
             start_time TEXT NOT NULL,
             end_time TEXT NOT NULL,
-            selected_days TEXT NOT NULL,
-            status INTEGER NOT NULL)''')
+            selected_days TEXT NOT NULL)''')
         connection.commit()
         connection.close()
     except sqlite3.Error as e:
@@ -31,23 +32,24 @@ def init_db():
 
 @app.route('/block', methods=['POST'])
 def block_website():
-    """Successfully added blocked website"""
     data = request.json
-    selected_days = ','.join([day for day, selected in data['selected_days'].items() if selected])
     if not data.get('url') or not data.get('start_time') or not data.get('end_time') or not data.get('selected_days'):
         return jsonify({"error": "Missing required fields"}), 400
     try:
         connection = sqlite3.connect('timesink.db')
         cursor = connection.cursor()
-        cursor.execute('''
-            INSERT INTO blocked_websites (url, start_time, end_time, selected_days, status)
-            VALUES (?, ?, ?, ?, ?)''', (data['url'], data['start_time'], data['end_time'], selected_days, 1))
+        selected_days = ','.join([day for day, selected in data['selected_days'].items() if selected])
+        cursor.execute('''INSERT INTO blocked_websites (url, start_time, end_time, selected_days)
+                          VALUES (?, ?, ?, ?)''', (data['url'], data['start_time'], data['end_time'], selected_days))
         connection.commit()
         connection.close()
+        add_cronjob()
         return jsonify({"message": "Website blocked successfully"}), 201
     except sqlite3.Error as e:
+        print(f"Database error: {e}")
         return jsonify({"error": f"Database error: {str(e)}"}), 500
     except Exception as e:
+        print(f"Unexpected error: {e}")
         return jsonify({"error": f"An unexpected error occurred: {str(e)}"}), 500
 
 
@@ -66,7 +68,6 @@ def get_history():
             'start_time': website[2],
             'end_time': website[3],
             'selected_days': website[4].split(','),
-            'status': website[5]
         } for website in websites]), 200
     except sqlite3.Error as e:
         return jsonify({"error": f"Database error: {str(e)}"}), 500
@@ -80,7 +81,7 @@ def get_website():
     try:
         connection = sqlite3.connect('timesink.db')
         cursor = connection.cursor()
-        cursor.execute('SELECT * FROM blocked_websites WHERE status = 1')
+        cursor.execute('SELECT * FROM blocked_websites')
         websites = cursor.fetchall()
         connection.close()
         if not websites:
@@ -90,8 +91,7 @@ def get_website():
             'url': website[1],
             'start_time': website[2],
             'end_time': website[3],
-            'selected_days': website[4],
-            'status': website[5]
+            'selected_days': website[4].split(','),
         } for website in websites]), 200
     except sqlite3.Error as e:
         return jsonify({"error": f"Database error: {str(e)}"}), 500
@@ -99,20 +99,62 @@ def get_website():
         return jsonify({"error": f"An unexpected error occurred: {str(e)}"}), 500
 
 
-@app.route('/reblock', methods=['POST'])
-def reblock_website():
-    """Re-block a website that has been unblocked"""
+@app.route('/current_block/<int:id>', methods=['PUT'])
+def update_website(id):
+    """Update the details of a blocked website"""
     data = request.json
-    conn = sqlite3.connect('timesink.db')
-    cursor = conn.cursor()
-    cursor.execute('''
-        UPDATE blocked_websites
-        SET status = '1'
-        WHERE id = ?
-    ''', (data['id'],))
-    conn.commit()
-    conn.close()
-    return jsonify({"message": "Website re-blocked successfully"}), 200
+    if not data.get('start_time') or not data.get('end_time') or not data.get('selected_days'):
+        return jsonify({"error": "Missing required fields"}), 400
+    try:
+        connection = sqlite3.connect('timesink.db')
+        cursor = connection.cursor()
+        # Retrieve the URL associated with the given ID
+        cursor.execute('''SELECT * FROM blocked_websites WHERE id = ?''', (id,))
+        current_row = cursor.fetchone()
+        if current_row is None:
+            return jsonify({"error": "Website not found"}), 404
+
+        # Update the entry in the database
+        cursor.execute('''UPDATE blocked_websites SET url = ?, start_time = ?, end_time = ?, selected_days = ?
+                          WHERE id = ?''', (data['url'], data['start_time'], data['end_time'], data['selected_days'], id))
+        connection.commit()
+        connection.close()
+
+        edit_cron_job(current_row, data)
+        return jsonify({"message": "Website updated successfully"}), 200
+    except sqlite3.Error as e:
+        return jsonify({"error": f"Database error: {str(e)}"}), 500
+    except Exception as e:
+        return jsonify({"error": f"An unexpected error occurred: {str(e)}"}), 500
+
+
+@app.route('/current_block/<int:id>', methods=['DELETE'])
+def delete_website(id):
+    """Delete a blocked website"""
+    try:
+        connection = sqlite3.connect('timesink.db')
+        cursor = connection.cursor()
+
+        # Retrieve the URL associated with the given ID
+        cursor.execute('''SELECT url FROM blocked_websites WHERE id = ?''', (id,))
+        row = cursor.fetchone()
+        if row is None:
+            return jsonify({"error": "Website not found"}), 404
+        url = row[0]
+
+        # Delete the entry from the database
+        cursor.execute('''DELETE FROM blocked_websites WHERE id = ?''', (id,))
+        connection.commit()
+        connection.close()
+
+        # Call delete_cron_job with the ID and unblock the website
+        delete_cron_job(id, url)
+
+        return jsonify({"message": "Website deleted successfully"}), 200
+    except sqlite3.Error as e:
+        return jsonify({"error": f"Database error: {str(e)}"}), 500
+    except Exception as e:
+        return jsonify({"error": f"An unexpected error occurred: {str(e)}"}), 500
 
 
 # New Routes for Statistics.js
@@ -289,13 +331,13 @@ def query_graph():
         # Count blocked and forwarded queries in this hour
         blocked_count = cursor.execute("""
             SELECT COUNT(*) FROM dns_log
-            WHERE query_type = 'config' AND timestamp BETWEEN ? AND ?""",
-            (hour_start, hour_end)).fetchone()[0]
+            WHERE query_type = 'config' AND timestamp BETWEEN ? AND ?
+            """, (hour_start, hour_end)).fetchone()[0]
 
         forwarded_count = cursor.execute("""
             SELECT COUNT(*) FROM dns_log
-            WHERE query_type LIKE '%query%' AND timestamp BETWEEN ? AND ?""",
-            (hour_start, hour_end)).fetchone()[0]
+            WHERE query_type LIKE '%query%' AND timestamp BETWEEN ? AND ?
+            """, (hour_start, hour_end)).fetchone()[0]
 
         data.append({
             "time": hour.strftime("%H:%M"),
@@ -341,16 +383,10 @@ def query_type_breakdown():
         return jsonify({"error": f"An unexpected error occurred: {str(e)}"}), 500
 
 
-# def run_scheduler():
-#     """updates the cron job"""
-#     while True:
-#         update_cron_jobs()
-#         time.sleep(300)     # Sleep for 5 minutes
-
-# threading.Thread(target=run_scheduler,daemon=True).start()
 def start_processing_log():
     thread = threading.Thread(target=log_processor.start_processing, daemon=True)
     thread.start()
+
 
 if __name__ == '__main__':
     init_db()   # blocked websites database

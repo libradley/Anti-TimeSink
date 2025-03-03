@@ -19,6 +19,7 @@ logging.basicConfig(
 )
 logging.info("Log processor module initialized...")
 
+
 def initialize_database():
     """Ensure the database and table exist."""
     print("initialize_database: dns_log, processing_state")
