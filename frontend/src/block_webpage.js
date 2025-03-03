@@ -39,19 +39,19 @@ const BlockWebpage = () => {
   const handleSubmit = async () => {
     const startTime24 = convertTo24Hour(startHour, startMinute, startPeriod);
     const endTime24 = convertTo24Hour(endHour, endMinute, endPeriod);
-
+  
     if (startTime24 >= endTime24) {
       alert('Start time must be before end time.');
       return;
     }
-
+  
     const data = {
       url,
       start_time: `${startHour}:${startMinute} ${startPeriod}`,
       end_time: `${endHour}:${endMinute} ${endPeriod}`,
-      selected_days,
+      selected_days: selected_days,  // Send selected_days as a dictionary
     };
-
+  
     try {
       const response = await fetch('http://localhost:5000/block', {
         method: 'POST',
@@ -60,9 +60,26 @@ const BlockWebpage = () => {
         },
         body: JSON.stringify(data),
       });
-
+  
       if (response.ok) {
         alert('Website blocked successfully');
+        // Reset form fields to initial values
+        setUrl('');
+        setStartHour('12');
+        setStartMinute('00');
+        setStartPeriod('AM');
+        setEndHour('12');
+        setEndMinute('00');
+        setEndPeriod('AM');
+        setSelectedDays({
+          Mon: false,
+          Tue: false,
+          Wed: false,
+          Thu: false,
+          Fri: false,
+          Sat: false,
+          Sun: false,
+        });
       } else {
         alert('Failed to block website');
       }
