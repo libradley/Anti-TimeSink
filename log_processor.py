@@ -5,8 +5,10 @@ import logging
 from datetime import datetime, date
 
 # Path to the log file and database
-LOG_FILE = "./unittest/dnsmasq.log"
+LOG_FILE = "/var/log/dnsmasq.log"
 DB_PATH = "dns_log.db"
+
+# LOG_FILE = "./unittest/dnsmasq.log"       # path to log file for local testing
 
 # Regular expression to parse log lines
 log_pattern = re.compile(r'^(?P<timestamp>\w+\s+\d+\s+\d+:\d+:\d+)\s+dnsmasq\[(?P<process_id>\d+)\]:\s+(?P<message>.+)$')

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { BarChart, Bar, XAxis, YAxis, PieChart, Pie, Cell, Tooltip, CartesianGrid, Legend } from 'recharts';
 
 const StatisticsPage = () => {
@@ -35,6 +35,7 @@ const StatisticsPage = () => {
     fetchClients();
   }, []);
 
+  //////////////////////////
   // Graphical Data pie chart
   useEffect(() => {
     const fetchQueryTypeData = async () => {
@@ -66,6 +67,7 @@ const StatisticsPage = () => {
     return () => clearInterval(interval);
   }, []); // Empty dependency array to only set up interval once
 
+  //////////////////////////
   // Graphical Data bar chart
   useEffect(() => {
     const fetchGraphData = async () => {
@@ -90,18 +92,21 @@ const StatisticsPage = () => {
     return () => clearInterval(interval);
   }, []);
 
+  // QUERY GRAPH
   const QueryGraph = ({ data }) => {
     return (
       // Bar chart for last 24 hours queries allowed and blocked
-      <BarChart width={800} height={300} data={data}>
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="time" />
-        <YAxis />
-        <Tooltip />
-        <Legend />
-        <Bar dataKey="allowed" fill="#004225" />
-        <Bar dataKey="blocked" fill="#FF0000" />
-      </BarChart>
+      <div className="grid-container">
+        <BarChart width={800} height={300} data={data}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="time" />
+          <YAxis />
+          <Tooltip />
+          <Legend />
+          <Bar dataKey="allowed" fill="#004225" />
+          <Bar dataKey="blocked" fill="#FF0000" />
+        </BarChart>
+      </div>
     )
   };
 
@@ -113,7 +118,7 @@ const StatisticsPage = () => {
 
     return (
       // Pie chart for last 24 hours query type breakdown
-      <div>
+      <div className="grid-container">
         <PieChart width={800} height={300}>
           <Pie
             data={data}
@@ -137,7 +142,7 @@ const StatisticsPage = () => {
   }
 
   // This function handles the queries listed reverse chronological order to selected date.
-  const fetchQueriesByDate = async () => {
+  const fetchQueriesByDate = useCallback(async () => {
     try {
       // Find offset and send request to API endpoint
       const offset = (current_page - 1) * queries_per_page;
@@ -153,7 +158,14 @@ const StatisticsPage = () => {
     } catch (error) {
       console.error("Error fetching queries by date:", error);
     }
-  };
+  }, [current_page, queries_per_page, host_url, query_date]);
+
+  // useEffect to re-fetch queries when current_page changes
+  useEffect(() => {
+    if (selected_form === "queriesByDate" && query_date) {
+      fetchQueriesByDate();
+    }
+  }, [current_page, selected_form, fetchQueriesByDate, query_date]);
 
   // This function handles the top queries by client.
   const fetchTopQueriesByClient = async () => {
@@ -182,24 +194,74 @@ const StatisticsPage = () => {
     }
   };
 
-  // This function renders the pagination buttons.
+  // This function handles the pagination of buttons from queries per page request
   const renderPagination = () => {
-    const pages = Array.from({ length: total_pages }, (_, i) => i + 1);
+    const maxPagesToShow = 3;
+    let startPage = Math.max(1, current_page - Math.floor(maxPagesToShow / 2));
+    let endPage = Math.min(total_pages, startPage + maxPagesToShow - 1);
+
+    if (endPage - startPage < maxPagesToShow - 1) {
+        startPage = Math.max(1, endPage - maxPagesToShow + 1);
+    }
+
+    const pages = []; // Use an array instead of Set
+
+    // helper function to get two ellipsis in and not repeat numbers
+    const addPage = (page) => {
+        if (!pages.includes(page) || page === "...") {
+            pages.push(page);
+        }
+    };
+
+    addPage(1); // Always include first page
+    if (startPage > 2) addPage("..."); // Ellipsis before main range
+
+    for (let i = startPage; i <= endPage; i++) {
+        addPage(i);
+    }
+
+    if (endPage < total_pages - 1) addPage("..."); // Ellipsis after main range
+    addPage(total_pages); // Always include last page
+
     return (
-      <div className="pagination">
-        {pages.map((page) => (
-          <button
-            key={page}
-            onClick={() => {
-              setCurrentPage(page);
-              fetchQueriesByDate();
-            }}
-            className={page === current_page ? "active" : ""}
-          >
-            {page}
-          </button>
-        ))}
-      </div>
+        <div className="pagination">
+            <button
+                disabled={current_page === 1}
+                onClick={() => {
+                    setCurrentPage(current_page - 1);
+                    fetchQueriesByDate();
+                }}
+            >
+                Prev
+            </button>
+
+            {pages.map((page, index) =>
+                page === "..." ? (
+                    <span key={`ellipsis-${index}`} className="ellipsis">...</span>
+                ) : (
+                    <button
+                        key={page}
+                        onClick={() => {
+                            setCurrentPage(page);
+                            fetchQueriesByDate();
+                        }}
+                        className={page === current_page ? "active" : ""}
+                    >
+                        {page}
+                    </button>
+                )
+            )}
+
+            <button
+                disabled={current_page === total_pages}
+                onClick={() => {
+                    setCurrentPage(current_page + 1);
+                    fetchQueriesByDate();
+                }}
+            >
+                Next
+            </button>
+        </div>
     );
   };
 
@@ -240,17 +302,6 @@ const StatisticsPage = () => {
           <p>Select a date in the past and a number of queries to display per page.</p>
           <p>
             <label>
-            Date:
-            <input
-              type="date"
-              value={query_date}
-              onChange={(e) => setQueryDate(e.target.value)}
-              required
-            />
-            </label>
-          </p>
-          <p>
-            <label>
               Queries Per Page:
               <select
                 value={queries_per_page}
@@ -267,6 +318,17 @@ const StatisticsPage = () => {
               </select>
             </label>
           </p>
+          <p>
+            <label>
+            Date:
+            <input
+              type="date"
+              value={query_date}
+              onChange={(e) => setQueryDate(e.target.value)}
+              required
+            />
+            </label>
+          </p>
           <button type="submit">Submit</button>
           <button onClick={() => {
             setSelectedForm(null)
@@ -281,8 +343,10 @@ const StatisticsPage = () => {
 
       {/* Build out table for the queries by date */}
       {queries_data.length > 0 && selected_form === "queriesByDate" && (
-        <div>
-          <table>
+        <div className="stats-container">
+          <h1 className="stats-title">Queries from now until selected date:</h1>
+          <div className="stats-table-wrapper">
+            <table className="stats-table">
             <thead>
               <tr>
                 <th>Date Time</th>
@@ -302,7 +366,10 @@ const StatisticsPage = () => {
               ))}
             </tbody>
           </table>
+        </div>
+        <p>
           {renderPagination()}
+        </p>
         </div>
       )}
 
@@ -355,42 +422,45 @@ const StatisticsPage = () => {
       {/* Build out tables for top queries allowed and blocked
           by client and date range selected to now */}
       {top_queries_data && selected_form === "topQueriesByClient" && (
-        <div>
-          <h3>Top 10 Requested Queries</h3>
-          <table>
-            <thead>
-              <tr>
-                <th>Domain</th>
-                <th>Count</th>
-              </tr>
-            </thead>
-            <tbody>
-              {top_queries_data.requested.queries.map((query, index) => (
-                <tr key={index}>
-                  <td>{query.domain}</td>
-                  <td>{query.count}</td>
+        <div className="stats-container">
+          <h3 className="stats-title">Top 10 Requested Queries</h3>
+          <div className="stats-table-wrapper">
+            <table className="stats-table">
+              <thead>
+                <tr>
+                  <th>Domain</th>
+                  <th>Count</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-
-          <h3>Top 10 Requested and Blocked Queries</h3>
-          <table>
-            <thead>
-              <tr>
-                <th>Domain</th>
-                <th>Count</th>
-              </tr>
-            </thead>
-            <tbody>
-              {top_queries_data.requested_and_blocked.queries.map((query, index) => (
-                <tr key={index}>
-                  <td>{query.domain}</td>
-                  <td>{query.count}</td>
+              </thead>
+              <tbody>
+                {top_queries_data.requested.queries.map((query, index) => (
+                  <tr key={index}>
+                    <td>{query.domain}</td>
+                    <td>{query.count}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <h3 className="stats-title">Top 10 Requested and Blocked Queries</h3>
+          <div className="stats-table-wrapper">
+            <table className="stats-table">
+              <thead>
+                <tr>
+                  <th>Domain</th>
+                  <th>Count</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {top_queries_data.requested_and_blocked.queries.map((query, index) => (
+                  <tr key={index}>
+                    <td>{query.domain}</td>
+                    <td>{query.count}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>
