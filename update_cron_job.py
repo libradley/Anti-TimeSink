@@ -140,6 +140,7 @@ def should_job_run(new_start_minute, new_start_hour, new_end_minute, new_end_hou
     if current_day_index == 7:
         current_day_index = 0
 
+    current_day_index = str(current_day_index)
     if current_day_index in cron_days and new_job_running:
         print('Job needs to run')
         return True
