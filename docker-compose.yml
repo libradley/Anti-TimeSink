@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  # Frontend service (built with Nginx serving static files)
+  frontend:
+    image: ghcr.io/libradley/anti-timesink/frontend:latest
+    container_name: frontend
+    ports:
+      - "80:80"  # Expose frontend on port 80 (accessible externally)
+    networks:
+      - frontend-backend-net
+    depends_on:
+      - backend  # Make sure backend is up before starting frontend
+
+  # Backend service (Python app, could be Flask/Django, etc.)
+  backend:
+    image: ghcr.io/libradley/anti-timesink/backend:latest
+    container_name: backend
+    ports:
+      - "5000:5000"  # Expose backend on port 5000 (accessible externally)
+    networks:
+      - frontend-backend-net
+    environment:
+      - BACKEND_URL=http://backend:5000  # Reference the backend service by name
+
+  # Dnsmasq service (providing DNS and blocking services)
+  dnsmasq:
+    image: ghcr.io/libradley/anti-timesink/dnsmasq:latest
+    container_name: dnsmasq
+    ports:
+      - "53:53/udp"   # Expose DNS port
+      - "53:53/tcp"   # Expose DNS port
+    networks:
+      - frontend-backend-net
+
+
+networks:
+  frontend-backend-net:
+    driver: bridge  # This allows communication between containers in the same network

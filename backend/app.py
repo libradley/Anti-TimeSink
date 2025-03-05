@@ -387,6 +387,9 @@ def start_processing_log():
     thread = threading.Thread(target=log_processor.start_processing, daemon=True)
     thread.start()
 
+init_db()   # blocked websites database
+log_processor.initialize_database()  # dns_log db and processing_state db
+start_processing_log()
 
 if __name__ == '__main__':
     init_db()   # blocked websites database
