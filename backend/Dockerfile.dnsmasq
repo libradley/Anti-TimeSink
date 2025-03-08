@@ -5,23 +5,17 @@ FROM debian:latest
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Update and install necessary packages
-RUN apt update && \
-    apt install -y \
+# Update the package list and install necessary packages
+RUN apt-get update && \
+    apt-get install -y \
     dnsmasq \
     python3-venv \
-    npm \
-    sed \
-    && rm -rf /var/lib/apt/lists/*
+    npm
 
-# Create necessary directories and files
-RUN mkdir -p /etc
-RUN touch /etc/dnsmasq.blacklist
+RUN touch /etc/dnsmasq.blacklist && chmod 666 /etc/dnsmasq.blacklist
 
 # Copy scripts and blacklist into the container
 COPY ./backend/dnsmasq.conf /etc/dnsmasq.conf
-
-# Set permissions for files (optional, ensure scripts can execute and the blacklist is writable)
-RUN chmod 666 /etc/dnsmasq.blacklist
 
 # Ensure no password is required for running sudo commands (if applicable, modify this)
 RUN echo "ALL ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers

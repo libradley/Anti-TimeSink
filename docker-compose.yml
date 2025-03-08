@@ -32,6 +32,10 @@ services:
       - "53:53/tcp"   # Expose DNS port
     networks:
       - frontend-backend-net
+    restart: always
+    command: ["--no-daemon"]
+    dns:
+      - 127.0.0.1
 
 
 networks:
