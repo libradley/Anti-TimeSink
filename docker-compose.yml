@@ -30,12 +30,12 @@ services:
     ports:
       - "53:53/udp"   # Expose DNS port
       - "53:53/tcp"   # Expose DNS port
-    networks:
-      - frontend-backend-net
-    restart: always
-    command: ["--no-daemon"]
+    volumes:
+      - './resolv.conf:etc/resolv.conf'
     dns:
       - 127.0.0.1
+    networks:
+      - frontend-backend-net
 
 
 networks:
